@@ -10,6 +10,9 @@ import RoomsPanel from './RoomsPanel'
 import StaffPanel from './StaffPanel'
 import StoriesPanel from './StoriesPanel'
 import MissionsWidget from './MissionsWidget'
+import MiniGameModal from './MiniGameModal'
+import MorningBriefing from './MorningBriefing'
+import FamilyVisitDialog from './FamilyVisitDialog'
 import ToastContainer from './Toast'
 import { useGameSounds } from '@/hooks/useGameSounds'
 
@@ -45,9 +48,19 @@ export default function GameDashboard({
   const [tab, setTab] = useState<Tab>('mapa')
   const [toasts, setToasts] = useState<Toast[]>([])
   const [seasonalBanner, setSeasonalBanner] = useState<string | null>(null)
+  const [miniGameEvent, setMiniGameEvent] = useState<{ event: GameEvent; resident: Resident } | null>(null)
+  const [familyVisitData, setFamilyVisitData] = useState<{ event: GameEvent; resident: Resident } | null>(null)
+  const [morningBriefing, setMorningBriefing] = useState<Residence['overnight_summary'] | null>(null)
   const prevStoriesCount = useRef(initStories.length)
   const { play, toggle: toggleSound } = useGameSounds()
   const supabase = createClient()
+
+  // Show morning briefing on load if overnight_summary is present
+  useEffect(() => {
+    if (init.overnight_summary) {
+      setMorningBriefing(init.overnight_summary)
+    }
+  }, [])
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = Date.now() + Math.random()
@@ -99,6 +112,9 @@ export default function GameDashboard({
     }
     if (data.seasonal && SEASONAL_BANNER[data.seasonal]) {
       setSeasonalBanner(data.seasonal)
+    }
+    if (data.is_new_day && data.overnight_summary) {
+      setMorningBriefing(data.overnight_summary)
     }
   }, [fetchState, addToast, play])
 
@@ -190,6 +206,66 @@ export default function GameDashboard({
     if (navigator.vibrate) navigator.vibrate([50, 30, 50])
   }, [fetchState, addToast, play])
 
+  const handleRepairRoom = useCallback(async (roomId: string) => {
+    const res = await fetch('/api/game/fix-room', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomId }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    addToast('Tele reparada 🔧', 'success')
+    play('success')
+  }, [fetchState, addToast, play])
+
+  const handleOpenMiniGame = useCallback((event: GameEvent, resident: Resident) => {
+    setMiniGameEvent({ event, resident })
+  }, [])
+
+  const handleMiniGameSuccess = useCallback(async () => {
+    if (!miniGameEvent) return
+    const eventId = miniGameEvent.event.id
+    setMiniGameEvent(null)
+    const res = await fetch('/api/game/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId }),
+    })
+    const data = await res.json()
+    await fetchState()
+    if (data.xp > 0) { addToast(`+${data.xp} XP 🧠`, 'xp'); play('success') }
+    if (data.reward > 0) { addToast(`+${data.reward}€ 💰`, 'money'); play('coin') }
+  }, [miniGameEvent, fetchState, addToast, play])
+
+  const handleFamilyVisit = useCallback((event: GameEvent, resident: Resident) => {
+    setFamilyVisitData({ event, resident })
+  }, [])
+
+  const handleFamilyVisitResolve = useCallback(async (eventId: string, donationMult: number) => {
+    setFamilyVisitData(null)
+    const event = events.find(e => e.id === eventId)
+    const resident = residents.find(r => r.id === event?.resident_id)
+    const donation = donationMult > 0
+      ? Math.round(200 * donationMult * ((resident?.happiness ?? 70) / 100 + 0.5))
+      : 0
+    const res = await fetch('/api/game/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, bonusMoney: donation }),
+    })
+    const data = await res.json()
+    await fetchState()
+    if (donation > 0) {
+      addToast(`+${donation}€ donación familiar 💝`, 'money')
+      play('coin')
+    } else if (donationMult < 0) {
+      addToast('−10 reputación ⭐', 'warning')
+      play('alarm')
+    }
+    if (data.xp) { addToast(`+${data.xp} XP 🧠`, 'xp') }
+  }, [fetchState, addToast, play, residents, events])
+
   const urgentCount = events.length
   const pendingMissions = missions.filter(m => m.completed_at && !m.claimed_at).length
   const newStories = stories.length > 0 ? 0 : 0 // just for badge logic
@@ -213,13 +289,42 @@ export default function GameDashboard({
           <MissionsWidget missions={missions} onClaim={handleClaimMission} />
         )}
 
-        {tab === 'mapa'       && <GameMap residence={residence} residents={residents} events={events} rooms={rooms} onResolve={handleResolve} onGoToBuild={() => setTab('obras')} />}
+        {tab === 'mapa'       && <GameMap residence={residence} residents={residents} events={events} rooms={rooms} onResolve={handleResolve} onGoToBuild={() => setTab('obras')} onRepairRoom={handleRepairRoom} onOpenMiniGame={handleOpenMiniGame} onFamilyVisit={handleFamilyVisit} />}
         {tab === 'residentes' && <ResidentsPanel residents={residents} />}
         {tab === 'urgencias'  && <EventsPanel events={events} onResolve={handleResolve} />}
         {tab === 'obras'      && <RoomsPanel rooms={rooms} money={residence.money} onBuild={handleBuild} onUpgrade={handleUpgrade} />}
         {tab === 'personal'   && <StaffPanel staff={staff} money={residence.money} onHire={handleHire} onFire={handleFire} />}
         {tab === 'diario'     && <StoriesPanel stories={stories} />}
       </main>
+
+      {miniGameEvent && (
+        <MiniGameModal
+          event={miniGameEvent.event}
+          resident={miniGameEvent.resident}
+          roomResidents={residents.filter(r => r.current_room_type === miniGameEvent.resident.current_room_type)}
+          onSuccess={handleMiniGameSuccess}
+          onClose={() => setMiniGameEvent(null)}
+          play={play}
+        />
+      )}
+
+      {familyVisitData && (
+        <FamilyVisitDialog
+          event={familyVisitData.event}
+          resident={familyVisitData.resident}
+          onResolve={handleFamilyVisitResolve}
+          onClose={() => setFamilyVisitData(null)}
+          play={play}
+        />
+      )}
+
+      {morningBriefing && (
+        <MorningBriefing
+          summary={morningBriefing}
+          residenceName={residence.name}
+          onClose={() => setMorningBriefing(null)}
+        />
+      )}
 
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-amber-950/95 backdrop-blur border-t border-amber-800/50 flex">
         {([

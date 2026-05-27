@@ -10,7 +10,17 @@ export interface Residence {
   last_tick: string
   total_events_resolved: number
   seasonal_event: string | null
+  overnight_summary: OvernightSummary | null
+  last_morning_check: string
   created_at: string
+}
+
+export interface OvernightSummary {
+  income: number
+  events: number
+  escalated: number
+  hospitalized: number
+  date: string
 }
 
 export interface Resident {
@@ -41,6 +51,8 @@ export interface GameEvent {
   urgency: string
   resolved_at: string | null
   created_at: string
+  unresolved_ticks: number
+  hospitalized: boolean
   residents?: { name: string }
 }
 
@@ -50,6 +62,8 @@ export interface Room {
   type: string
   level: number
   built_at: string
+  broken: boolean
+  broken_since: string | null
 }
 
 export interface Toast {
