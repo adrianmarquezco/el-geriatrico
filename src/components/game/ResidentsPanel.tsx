@@ -1,39 +1,33 @@
 'use client'
+import { Resident } from '@/lib/types'
 
 const NEED_ICONS: Record<string, string> = {
-  hunger: '🍽️',
-  hygiene: '🚿',
-  medication: '💊',
-  entertainment: '📺',
-  companionship: '🤝',
+  hunger: '🍽️', hygiene: '🚿', medication: '💊', entertainment: '📺', companionship: '🤝',
 }
-
-const MOOD_COLOR: Record<string, string> = {
-  feliz: 'text-green-400',
-  normal: 'text-amber-400',
-  enfadado: 'text-orange-400',
-  furioso: 'text-red-400',
+const NEED_LABELS: Record<string, string> = {
+  hunger: 'Hambre', hygiene: 'Higiene', medication: 'Medicación', entertainment: 'Ocio', companionship: 'Compañía',
+}
+const MOOD_ICON: Record<string, string> = {
+  feliz: '😊', normal: '😐', enfadado: '😠', furioso: '🤬',
 }
 
 interface Props {
-  residents: any[]
-  residenceId: string
-  detailed?: boolean
+  residents: Resident[]
 }
 
-export default function ResidentsPanel({ residents, residenceId, detailed }: Props) {
+export default function ResidentsPanel({ residents }: Props) {
   if (residents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <div className="text-6xl mb-4">🛏️</div>
-        <p className="text-amber-500">No hay residentes aún.</p>
-        <p className="text-amber-700 text-sm mt-1">Ve a Obras para preparar habitaciones.</p>
+        <p className="text-amber-500 font-medium">Sin residentes aún.</p>
+        <p className="text-amber-700 text-sm mt-1">Construye habitaciones en Obras.</p>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <h2 className="text-amber-400 font-semibold text-sm">
         {residents.length} {residents.length === 1 ? 'residente' : 'residentes'}
       </h2>
@@ -41,35 +35,40 @@ export default function ResidentsPanel({ residents, residenceId, detailed }: Pro
       {residents.map(r => (
         <div key={r.id} className="card">
           <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="font-bold text-amber-200">{r.name}, <span className="font-normal text-amber-500">{r.age} años</span></p>
+            <div className="flex-1 min-w-0 pr-2">
+              <div className="flex items-center gap-2">
+                <p className="font-bold text-amber-200">{r.name}, <span className="font-normal text-amber-500 text-sm">{r.age} años</span></p>
+                <span className="text-lg">{MOOD_ICON[r.mood] || '😐'}</span>
+              </div>
               <p className="text-xs text-amber-600 mt-0.5 italic">"{r.tagline}"</p>
             </div>
-            <span className={`text-sm font-semibold ${MOOD_COLOR[r.mood] || 'text-amber-400'}`}>
-              {r.mood === 'feliz' ? '😊' : r.mood === 'enfadado' ? '😠' : r.mood === 'furioso' ? '🤬' : '😐'}
-            </span>
+            <div className="shrink-0">
+              <div className={`badge ${r.happiness >= 70 ? 'bg-green-900 text-green-400' : r.happiness >= 40 ? 'bg-amber-900 text-amber-400' : 'bg-red-900 text-red-400'}`}>
+                {r.happiness}%
+              </div>
+            </div>
           </div>
 
-          {/* Needs bars */}
           <div className="flex flex-col gap-1.5">
-            {(['hunger', 'hygiene', 'medication', 'entertainment', 'companionship'] as const).map(need => (
+            {(['hunger','hygiene','medication','entertainment','companionship'] as const).map(need => (
               <div key={need} className="flex items-center gap-2">
-                <span className="text-sm w-5">{NEED_ICONS[need]}</span>
+                <span className="text-sm w-5 shrink-0">{NEED_ICONS[need]}</span>
+                <span className="text-xs text-amber-700 w-16 shrink-0">{NEED_LABELS[need]}</span>
                 <div className="flex-1 h-1.5 bg-amber-900 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${
-                      r[need] < 30 ? 'bg-red-500' : r[need] < 60 ? 'bg-orange-400' : 'bg-green-500'
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      r[need] < 25 ? 'bg-red-500' : r[need] < 50 ? 'bg-orange-400' : 'bg-green-500'
                     }`}
                     style={{ width: `${r[need]}%` }}
                   />
                 </div>
-                <span className="text-xs text-amber-700 w-6 text-right">{r[need]}</span>
+                <span className={`text-xs w-6 text-right font-medium ${r[need] < 25 ? 'text-red-400' : 'text-amber-700'}`}>{r[need]}</span>
               </div>
             ))}
           </div>
 
-          {detailed && r.backstory && (
-            <p className="text-xs text-amber-600 mt-3 pt-3 border-t border-amber-800/50 italic">
+          {r.backstory && (
+            <p className="text-xs text-amber-700 mt-3 pt-3 border-t border-amber-800/40 italic leading-relaxed">
               {r.backstory}
             </p>
           )}

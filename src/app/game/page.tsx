@@ -8,31 +8,21 @@ export default async function GamePage() {
   if (!user) redirect('/login')
 
   const { data: residence } = await supabase
-    .from('residences')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
-
+    .from('residences').select('*').eq('user_id', user.id).single()
   if (!residence) redirect('/onboarding')
 
-  const { data: residents } = await supabase
-    .from('residents')
-    .select('*')
-    .eq('residence_id', residence.id)
-    .order('created_at')
-
-  const { data: events } = await supabase
-    .from('events')
-    .select('*, residents(name)')
-    .eq('residence_id', residence.id)
-    .is('resolved_at', null)
-    .order('created_at')
+  const [{ data: residents }, { data: events }, { data: rooms }] = await Promise.all([
+    supabase.from('residents').select('*').eq('residence_id', residence.id).order('created_at'),
+    supabase.from('events').select('*, residents(name)').eq('residence_id', residence.id).is('resolved_at', null).order('created_at'),
+    supabase.from('rooms').select('*').eq('residence_id', residence.id),
+  ])
 
   return (
     <GameDashboard
       residence={residence}
       residents={residents || []}
       events={events || []}
+      rooms={rooms || []}
     />
   )
 }
