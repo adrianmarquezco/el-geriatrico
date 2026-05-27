@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { GameEvent, Resident } from '@/lib/types'
 
+type SoundType = 'tap' | 'coin' | 'alarm' | 'success' | 'footstep' | 'levelup' | 'mission'
+
 const FAMILY_MEMBERS: Record<string, string> = {
   quejica:    'Su hijo Emilio',
   cotilla:    'Su hija Paqui',
@@ -51,7 +53,7 @@ interface Props {
   resident: Resident
   onResolve: (eventId: string, donationMult: number) => void
   onClose: () => void
-  play?: (s: string) => void
+  play?: (s: SoundType) => void
 }
 
 export default function FamilyVisitDialog({ event, resident, onResolve, onClose, play }: Props) {

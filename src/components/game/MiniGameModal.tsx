@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { GameEvent, Resident } from '@/lib/types'
 
+type SoundType = 'tap' | 'coin' | 'alarm' | 'success' | 'footstep' | 'levelup' | 'mission'
+
 // ─── Food preferences by personality ──────────────────────────────
 const FOOD_PREF: Record<string, number> = {
   quejica: 1, cotilla: 0, mandón: 2, devota: 0,
@@ -42,7 +44,7 @@ interface Props {
   roomResidents?: Resident[] // for tv_dispute
   onSuccess: () => void
   onClose: () => void
-  play?: (s: string) => void
+  play?: (s: SoundType) => void
 }
 
 export default function MiniGameModal({ event, resident, roomResidents, onSuccess, onClose, play }: Props) {
@@ -83,7 +85,7 @@ export default function MiniGameModal({ event, resident, roomResidents, onSucces
 }
 
 // ─── REFUSAL ──────────────────────────────────────────────────────
-function RefusalGame({ resident, onSuccess, onClose, play }: { resident: Resident; onSuccess: () => void; onClose: () => void; play?: (s: string) => void }) {
+function RefusalGame({ resident, onSuccess, onClose, play }: { resident: Resident; onSuccess: () => void; onClose: () => void; play?: (s: SoundType) => void }) {
   const lines = REFUSALS[resident.personality] || REFUSALS.normal
   const line = lines[Math.floor(Math.random() * lines.length)]
 
@@ -106,7 +108,7 @@ function RefusalGame({ resident, onSuccess, onClose, play }: { resident: Residen
 // ─── PILLS ────────────────────────────────────────────────────────
 const PILL_COLORS = ['#ef4444','#3b82f6','#22c55e','#f59e0b','#a855f7','#ec4899']
 
-function PillsGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: string) => void }) {
+function PillsGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: SoundType) => void }) {
   const [timeLeft, setTimeLeft] = useState(6)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [failed, setFailed] = useState(false)
@@ -189,7 +191,7 @@ function PillsGame({ resident, onSuccess, play }: { resident: Resident; onSucces
 }
 
 // ─── SLIDER ──────────────────────────────────────────────────────
-function SliderGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: string) => void }) {
+function SliderGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: SoundType) => void }) {
   const [pos, setPos] = useState(0)
   const [result, setResult] = useState<'success' | 'fail' | null>(null)
   const animRef = useRef<number>()
@@ -252,7 +254,7 @@ function SliderGame({ resident, onSuccess, play }: { resident: Resident; onSucce
 }
 
 // ─── FOOD ─────────────────────────────────────────────────────────
-function FoodGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: string) => void }) {
+function FoodGame({ resident, onSuccess, play }: { resident: Resident; onSuccess: () => void; play?: (s: SoundType) => void }) {
   const [chosen, setChosen] = useState<number | null>(null)
   const correctIdx = FOOD_PREF[resident.personality] ?? 0
 
@@ -301,7 +303,7 @@ function FoodGame({ resident, onSuccess, play }: { resident: Resident; onSuccess
 }
 
 // ─── REMOTE ───────────────────────────────────────────────────────
-function RemoteGame({ residents, onSuccess, play }: { residents: Resident[]; onSuccess: () => void; play?: (s: string) => void }) {
+function RemoteGame({ residents, onSuccess, play }: { residents: Resident[]; onSuccess: () => void; play?: (s: SoundType) => void }) {
   const [chosen, setChosen] = useState<number | null>(null)
 
   function getBestChannel() {
