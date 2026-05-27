@@ -16,15 +16,16 @@ export const ROOM_META: Record<string, { icon: string; label: string; bg: string
 }
 
 const EVENT_OVERLAY: Record<string, { emoji: string; label: string; color: string }> = {
-  hygiene:        { emoji: '💧', label: 'charco en el suelo',     color: 'bg-blue-900/80'   },
-  fallen:         { emoji: '🩹', label: 'alguien se ha caído',    color: 'bg-red-900/80'    },
-  tv_dispute:     { emoji: '📺💥', label: 'bronca por la tele',   color: 'bg-purple-900/80' },
-  missing:        { emoji: '🚪❓', label: 'ha salido solo',       color: 'bg-amber-900/80'  },
-  hunger:         { emoji: '🍽️',  label: 'sin comer',             color: 'bg-orange-900/80' },
-  medication:     { emoji: '💊',  label: 'sin medicación',        color: 'bg-pink-900/80'   },
-  companionship:  { emoji: '💔',  label: 'pide compañía',         color: 'bg-rose-900/80'   },
-  entertainment:  { emoji: '😴',  label: 'muy aburrido',          color: 'bg-slate-900/80'  },
-  locked_in:      { emoji: '🔒',  label: 'encerrado por dentro',  color: 'bg-zinc-900/80'   },
+  hygiene:        { emoji: '💧',   label: 'charco en el suelo',     color: 'bg-blue-900/80'   },
+  fallen:         { emoji: '🩹',   label: 'alguien se ha caído',    color: 'bg-red-900/80'    },
+  tv_dispute:     { emoji: '📺💥', label: 'bronca por la tele',     color: 'bg-purple-900/80' },
+  missing:        { emoji: '🚪❓', label: 'ha salido solo',         color: 'bg-amber-900/80'  },
+  hunger:         { emoji: '🍽️',  label: 'sin comer',               color: 'bg-orange-900/80' },
+  medication:     { emoji: '💊',  label: 'sin medicación',          color: 'bg-pink-900/80'   },
+  companionship:  { emoji: '💔',  label: 'pide compañía',           color: 'bg-rose-900/80'   },
+  entertainment:  { emoji: '😴',  label: 'muy aburrido',            color: 'bg-slate-900/80'  },
+  locked_in:      { emoji: '🔒',  label: 'encerrado por dentro',    color: 'bg-zinc-900/80'   },
+  family_visit:   { emoji: '👨‍👩‍👧',  label: 'visita de la familia',   color: 'bg-pink-900/80'   },
 }
 
 interface Props {

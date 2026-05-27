@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { GameEvent } from '@/lib/types'
 
-const EVENT_META: Record<string, { icon: string; label: string; xp: number }> = {
+const EVENT_META: Record<string, { icon: string; label: string; xp: number; reward?: number }> = {
   fallen:        { icon: '🤕', label: 'se ha caído',              xp: 15 },
   medication:    { icon: '💊', label: 'rechaza la medicación',    xp: 10 },
   hygiene:       { icon: '🚿', label: 'necesita higiene urgente', xp: 10 },
@@ -12,6 +12,7 @@ const EVENT_META: Record<string, { icon: string; label: string; xp: number }> = 
   hunger:        { icon: '🍽️', label: 'no ha comido',             xp: 10 },
   companionship: { icon: '🤝', label: 'pide compañía',            xp: 8  },
   entertainment: { icon: '🎮', label: 'está muy aburrido',        xp: 8  },
+  family_visit:  { icon: '👨‍👩‍👧', label: 'visita de la familia',    xp: 12, reward: 200 },
 }
 
 interface Props {
@@ -77,12 +78,14 @@ function EventCard({ event, resolving, onResolve }: { event: GameEvent; resolvin
         onClick={() => onResolve(event.id)}
         disabled={resolving === event.id}
         className={`w-full text-sm py-2.5 rounded-xl font-bold transition-all ${
-          isCritical
+          event.type === 'family_visit'
+            ? 'bg-pink-700 hover:bg-pink-600 text-white'
+            : isCritical
             ? 'bg-red-600 hover:bg-red-500 active:bg-red-700 text-white'
             : 'btn-primary'
         } disabled:opacity-50`}
       >
-        {resolving === event.id ? '...' : `Atender · +${meta.xp} XP`}
+        {resolving === event.id ? '...' : event.type === 'family_visit' ? `Recibir visita · +${meta.xp} XP` : `Atender · +${meta.xp} XP`}
       </button>
     </div>
   )

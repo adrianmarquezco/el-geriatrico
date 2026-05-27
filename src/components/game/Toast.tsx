@@ -7,6 +7,8 @@ const TOAST_STYLES: Record<string, string> = {
   warning: 'bg-red-600 text-white',
   success: 'bg-amber-500 text-amber-950',
   new:     'bg-blue-600 text-white',
+  story:   'bg-amber-800 text-amber-100',
+  mission: 'bg-yellow-500 text-yellow-950',
 }
 
 interface Props {

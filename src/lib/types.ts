@@ -8,6 +8,8 @@ export interface Residence {
   jr_energy: number
   jr_experience: number
   last_tick: string
+  total_events_resolved: number
+  seasonal_event: string | null
   created_at: string
 }
 
@@ -53,5 +55,50 @@ export interface Room {
 export interface Toast {
   id: number
   message: string
-  type: 'xp' | 'money' | 'warning' | 'success' | 'new'
+  type: 'xp' | 'money' | 'warning' | 'success' | 'new' | 'story' | 'mission'
+}
+
+export interface StaffMember {
+  id: string
+  residence_id: string
+  type: 'nurse' | 'cook' | 'cleaner' | 'entertainer'
+  name: string
+  level: number
+  salary_per_hour: number
+  hired_at: string
+}
+
+export interface DailyMission {
+  id: string
+  residence_id: string
+  type: string
+  description: string
+  icon: string
+  target_count: number
+  current_count: number
+  reward_money: number
+  reward_xp: number
+  completed_at: string | null
+  claimed_at: string | null
+  mission_date: string
+}
+
+export interface ResidentRelationship {
+  id: string
+  residence_id: string
+  resident_a_id: string
+  resident_b_id: string
+  type: 'rival' | 'friend' | 'crush' | 'neutral'
+  intensity: number
+}
+
+export interface Story {
+  id: string
+  residence_id: string
+  resident_id: string | null
+  chapter: number
+  title: string
+  content: string
+  trigger_type: string
+  unlocked_at: string
 }

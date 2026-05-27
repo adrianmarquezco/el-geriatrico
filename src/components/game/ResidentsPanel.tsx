@@ -67,8 +67,13 @@ export default function ResidentsPanel({ residents }: Props) {
             ))}
           </div>
 
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-amber-900/40">
+            <span className="text-[10px] text-amber-700">📍</span>
+            <span className="text-[10px] text-amber-600 italic">{r.activity || 'descansando'}</span>
+          </div>
+
           {r.backstory && (
-            <p className="text-xs text-amber-700 mt-3 pt-3 border-t border-amber-800/40 italic leading-relaxed">
+            <p className="text-xs text-amber-700 mt-2 italic leading-relaxed">
               {r.backstory}
             </p>
           )}
