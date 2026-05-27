@@ -142,7 +142,9 @@ export default function GameMap({ residence, residents, events, rooms, onResolve
   const [pairBubble, setPairBubble] = useState<{ aId: string; bId: string; aText: string; bText: string } | null>(null)
   const [jrTarget, setJrTarget] = useState<{ x: number; y: number } | null>(null)
   const [jrVisible, setJrVisible] = useState(false)
-  const [dayTint] = useState(getDayTint)
+  // Initialize with neutral value to avoid SSR/client hydration mismatch
+  const [dayTint, setDayTint] = useState<{ overlay: string; label: string }>({ overlay: 'rgba(0,0,0,0)', label: '🌤' })
+  useEffect(() => { setDayTint(getDayTint()) }, [])
 
   useEffect(() => {
     const measure = () => { if (containerRef.current) setContainerW(containerRef.current.offsetWidth) }

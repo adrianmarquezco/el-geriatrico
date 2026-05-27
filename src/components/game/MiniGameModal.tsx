@@ -48,16 +48,15 @@ interface Props {
 }
 
 export default function MiniGameModal({ event, resident, roomResidents, onSuccess, onClose, play }: Props) {
-  const type: MiniGameType = (() => {
-    // Random refusal based on personality (25% chance on first attempt for strong personalities)
+  const [type] = useState<MiniGameType>(() => {
     const strongPers = ['mandón', 'quejica', 'exigente', 'devota']
     if (strongPers.includes(resident.personality) && Math.random() < 0.3 && event.unresolved_ticks === 0) return 'refusal'
     if (event.type === 'medication') return 'pills'
     if (event.type === 'fallen') return 'slider'
     if (event.type === 'hunger') return 'food'
     if (event.type === 'tv_dispute') return 'remote'
-    return 'pills' // fallback
-  })()
+    return 'pills'
+  })
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
@@ -112,16 +111,11 @@ function PillsGame({ resident, onSuccess, play }: { resident: Resident; onSucces
   const [timeLeft, setTimeLeft] = useState(6)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [failed, setFailed] = useState(false)
-  const correct = useRef<Set<number>>(new Set([
-    Math.floor(Math.random() * 6),
-    Math.floor(Math.random() * 6),
-    (Math.floor(Math.random() * 6)),
-  ]))
-
-  // ensure 3 unique correct pills
-  while (correct.current.size < 3) {
-    correct.current.add(Math.floor(Math.random() * 6))
-  }
+  const correct = useRef<Set<number>>((() => {
+    const s = new Set<number>()
+    while (s.size < 3) s.add(Math.floor(Math.random() * 6))
+    return s
+  })())
 
   useEffect(() => {
     if (failed || timeLeft === 0) return
