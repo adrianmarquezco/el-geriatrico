@@ -26,6 +26,8 @@ export interface Resident {
   entertainment: number
   companionship: number
   happiness: number
+  current_room_type: string
+  activity: string
   created_at: string
 }
 
