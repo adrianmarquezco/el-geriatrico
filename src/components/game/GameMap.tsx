@@ -303,7 +303,7 @@ export default function GameMap({ residence, residents, events, rooms, onResolve
               {/* Speech bubble */}
               {bubble && (
                 <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 z-20 animate-bounce-in"
-                  style={{ whiteSpace: 'nowrap', background: 'rgba(255,255,255,0.95)', color: '#1a1a2e', fontSize: 9, fontWeight: 600, padding: '3px 6px', borderRadius: 8, maxWidth: 110, whiteSpace: 'normal', lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,0.4)', textAlign: 'center' }}>
+                  style={{ whiteSpace: 'normal', background: 'rgba(255,255,255,0.95)', color: '#1a1a2e', fontSize: 9, fontWeight: 600, padding: '3px 6px', borderRadius: 8, maxWidth: 110, lineHeight: 1.3, boxShadow: '0 2px 8px rgba(0,0,0,0.4)', textAlign: 'center' }}>
                   {bubble}
                   <div style={{ position: 'absolute', bottom: -4, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid rgba(255,255,255,0.95)' }} />
                 </div>
