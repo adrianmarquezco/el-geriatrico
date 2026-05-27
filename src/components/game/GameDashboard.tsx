@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Residence, Resident, GameEvent, Room, Toast } from '@/lib/types'
 import TopBar from './TopBar'
-import ResidenceMap from './ResidenceMap'
+import GameMap from './GameMap'
 import ResidentsPanel from './ResidentsPanel'
 import EventsPanel from './EventsPanel'
 import RoomsPanel from './RoomsPanel'
@@ -94,7 +94,7 @@ export default function GameDashboard({ residence: init, residents: initR, event
       <TopBar residence={residence} />
 
       <main className="flex-1 px-3 pb-24 pt-3">
-        {tab === 'mapa'       && <ResidenceMap residence={residence} residents={residents} events={events} rooms={rooms} onResolve={handleResolve} onGoToBuild={() => setTab('obras')} />}
+        {tab === 'mapa'       && <GameMap residence={residence} residents={residents} events={events} rooms={rooms} onResolve={handleResolve} onGoToBuild={() => setTab('obras')} />}
         {tab === 'residentes' && <ResidentsPanel residents={residents} />}
         {tab === 'urgencias'  && <EventsPanel events={events} onResolve={handleResolve} />}
         {tab === 'obras'      && <RoomsPanel rooms={rooms} money={residence.money} onBuild={handleBuild} />}
@@ -103,7 +103,7 @@ export default function GameDashboard({ residence: init, residents: initR, event
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-amber-950/95 backdrop-blur border-t border-amber-800/50 flex">
         {([
           { id: 'mapa',       label: 'Residencia', icon: '🏠' },
-          { id: 'residentes', label: 'Ancianos',   icon: '👴' },
+          { id: 'residentes', label: 'Residentes',  icon: '👴' },
           { id: 'urgencias',  label: 'Urgencias',  icon: '🚨', badge: urgentCount },
           { id: 'obras',      label: 'Obras',      icon: '🔨' },
         ] as Array<{ id: Tab; label: string; icon: string; badge?: number }>).map(t => (
