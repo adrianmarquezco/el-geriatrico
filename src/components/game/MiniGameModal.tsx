@@ -139,7 +139,7 @@ function PillsGame({ resident, onSuccess, play }: { resident: Resident; onSucces
     if (next.has(i)) { next.delete(i) } else { next.add(i) }
     setSelected(next)
     if (next.size === 3) {
-      const ok = [...next].every(n => correct.current.has(n))
+      const ok = Array.from(next).every(n => correct.current.has(n))
       if (ok) { play?.('success'); setTimeout(onSuccess, 400) }
       else { play?.('alarm'); setFailed(true); setSelected(new Set()) }
     }
