@@ -43,7 +43,7 @@ export default function ResidenceMap({ residence, residents, events, rooms, onRe
   }))
 
   // Non-bedroom rooms (unique)
-  const otherRoomTypes = [...new Set(rooms.filter(r => r.type !== 'bedroom').map(r => r.type))]
+  const otherRoomTypes = Array.from(new Set(rooms.filter(r => r.type !== 'bedroom').map(r => r.type)))
 
   const totalEvents = events.length
   const criticalEvents = events.filter(e => e.urgency === 'critical').length
