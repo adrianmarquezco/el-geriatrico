@@ -8,6 +8,10 @@ interface Props {
 }
 
 export default function MorningBriefing({ summary, residenceName, onClose }: Props) {
+  const income = summary?.income ?? 0
+  const eventsCount = summary?.events ?? 0
+  const escalated = summary?.escalated ?? 0
+  const hospitalized = summary?.hospitalized ?? 0
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'
 
@@ -28,29 +32,29 @@ export default function MorningBriefing({ summary, residenceName, onClose }: Pro
           <div className="grid grid-cols-2 gap-2">
             <BriefingCard
               icon="💰"
-              value={`+${summary.income.toLocaleString('es-ES')}€`}
+              value={`+${income.toLocaleString('es-ES')}€`}
               label="ingresado"
-              color={summary.income > 0 ? 'text-green-400' : 'text-amber-700'}
+              color={income > 0 ? 'text-green-400' : 'text-amber-700'}
             />
             <BriefingCard
               icon="🚨"
-              value={summary.events.toString()}
-              label={`urgencia${summary.events !== 1 ? 's' : ''} pendiente${summary.events !== 1 ? 's' : ''}`}
-              color={summary.events === 0 ? 'text-green-400' : summary.events > 2 ? 'text-red-400' : 'text-orange-400'}
+              value={eventsCount.toString()}
+              label={`urgencia${eventsCount !== 1 ? 's' : ''} pendiente${eventsCount !== 1 ? 's' : ''}`}
+              color={eventsCount === 0 ? 'text-green-400' : eventsCount > 2 ? 'text-red-400' : 'text-orange-400'}
             />
-            {summary.escalated > 0 && (
+            {escalated > 0 && (
               <BriefingCard
                 icon="⬆️"
-                value={summary.escalated.toString()}
+                value={escalated.toString()}
                 label="escalada a crítico"
                 color="text-orange-400"
               />
             )}
-            {summary.hospitalized > 0 && (
+            {hospitalized > 0 && (
               <BriefingCard
                 icon="🏥"
-                value={summary.hospitalized.toString()}
-                label={`hospitalizado${summary.hospitalized !== 1 ? 's' : ''}`}
+                value={hospitalized.toString()}
+                label={`hospitalizado${hospitalized !== 1 ? 's' : ''}`}
                 color="text-red-400 animate-pulse"
               />
             )}
@@ -59,17 +63,17 @@ export default function MorningBriefing({ summary, residenceName, onClose }: Pro
           {/* Narrative line */}
           <div className="bg-amber-900/30 rounded-xl px-4 py-3 border border-amber-800/30">
             <p className="text-amber-400 text-xs italic leading-relaxed">
-              {summary.hospitalized > 0
-                ? `Ha sido una noche dura. ${summary.hospitalized} residente${summary.hospitalized > 1 ? 's' : ''} necesita atención médica urgente.`
-                : summary.events === 0
+              {hospitalized > 0
+                ? `Ha sido una noche dura. ${hospitalized} residente${hospitalized > 1 ? 's' : ''} necesita atención médica urgente.`
+                : eventsCount === 0
                 ? 'Noche tranquila. Todos dormían cuando llegaste. El café está recién hecho.'
-                : summary.events <= 2
+                : eventsCount <= 2
                 ? 'Un par de incidencias, nada que JR no pueda gestionar. Buen turno.'
                 : 'Noche movida. Manolo ha estado quejándose desde las 3 de la mañana. El de siempre.'}
             </p>
           </div>
 
-          {summary.events > 0 && (
+          {eventsCount > 0 && (
             <p className="text-red-400 text-xs font-semibold text-center animate-pulse">
               🚨 Revisa las urgencias pendientes
             </p>

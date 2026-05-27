@@ -55,10 +55,10 @@ export default function GameDashboard({
   const { play, toggle: toggleSound } = useGameSounds()
   const supabase = createClient()
 
-  // Show morning briefing on load if overnight_summary is present
   useEffect(() => {
-    if (init.overnight_summary) {
-      setMorningBriefing(init.overnight_summary)
+    const s = init.overnight_summary
+    if (s && typeof s.income === 'number') {
+      setMorningBriefing(s)
     }
   }, [])
 
@@ -113,7 +113,7 @@ export default function GameDashboard({
     if (data.seasonal && SEASONAL_BANNER[data.seasonal]) {
       setSeasonalBanner(data.seasonal)
     }
-    if (data.is_new_day && data.overnight_summary) {
+    if (data.is_new_day && data.overnight_summary && typeof data.overnight_summary.income === 'number') {
       setMorningBriefing(data.overnight_summary)
     }
   }, [fetchState, addToast, play])
