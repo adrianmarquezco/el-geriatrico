@@ -46,7 +46,7 @@ export default function GameDashboard({
   const [toasts, setToasts] = useState<Toast[]>([])
   const [seasonalBanner, setSeasonalBanner] = useState<string | null>(null)
   const prevStoriesCount = useRef(initStories.length)
-  const { play } = useGameSounds()
+  const { play, toggle: toggleSound } = useGameSounds()
   const supabase = createClient()
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
@@ -205,7 +205,7 @@ export default function GameDashboard({
         </div>
       )}
 
-      <TopBar residence={residence} />
+      <TopBar residence={residence} onSoundToggle={toggleSound} />
 
       <main className="flex-1 px-3 pb-24 pt-3 flex flex-col gap-3">
         {/* Missions widget always visible on map and urgencias tabs */}

@@ -1,17 +1,31 @@
 'use client'
+import { useState, useEffect } from 'react'
 import { Residence } from '@/lib/types'
 
 interface Props {
   residence: Residence
+  onSoundToggle?: () => boolean
 }
 
-function xpForNextLevel(level: number) {
-  return level * 200
-}
+function xpForNextLevel(level: number) { return level * 200 }
 
-export default function TopBar({ residence }: Props) {
+export default function TopBar({ residence, onSoundToggle }: Props) {
   const xpNeeded = xpForNextLevel(residence.level)
   const xpProgress = Math.min(100, (residence.jr_experience % xpNeeded) / xpNeeded * 100)
+  const [soundOn, setSoundOn] = useState(true)
+
+  // Restore from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('geriatrico_sound')
+    if (stored === 'off') setSoundOn(false)
+  }, [])
+
+  function handleSound() {
+    if (!onSoundToggle) return
+    const next = onSoundToggle()
+    setSoundOn(next)
+    localStorage.setItem('geriatrico_sound', next ? 'on' : 'off')
+  }
 
   return (
     <header className="sticky top-0 z-10 bg-amber-950/95 backdrop-blur border-b border-amber-800/50 px-4 py-2.5">
@@ -21,24 +35,30 @@ export default function TopBar({ residence }: Props) {
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-amber-600 text-[10px]">JR Nv.{residence.level}</span>
             <span className="text-amber-800 text-[10px]">·</span>
-            <span className="text-amber-700 text-[10px]">⭐{residence.reputation} rep.</span>
+            <span className="text-amber-700 text-[10px]">⭐{residence.reputation}</span>
             <span className="text-amber-800 text-[10px]">·</span>
-            <span className="text-amber-700 text-[10px]">✅{residence.total_events_resolved || 0} resueltos</span>
+            <span className="text-amber-700 text-[10px]">✅{residence.total_events_resolved || 0}</span>
           </div>
         </div>
-        <span className="text-green-400 font-bold text-sm">💰 {residence.money.toLocaleString('es-ES')}€</span>
+        <div className="flex items-center gap-2">
+          <span className="text-green-400 font-bold text-sm">💰 {residence.money.toLocaleString('es-ES')}€</span>
+          {onSoundToggle && (
+            <button onClick={handleSound} className="text-amber-700 hover:text-amber-400 transition-colors text-base" title={soundOn ? 'Silenciar' : 'Activar sonido'}>
+              {soundOn ? '🔊' : '🔇'}
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Dual progress: JR energy + XP */}
       <div className="flex gap-2">
         <div className="flex items-center gap-1.5 flex-1">
-          <span className="text-[10px] text-amber-600 whitespace-nowrap">⚡</span>
+          <span className="text-[10px] text-amber-600">⚡</span>
           <div className="flex-1 h-1.5 bg-amber-900/60 rounded-full overflow-hidden">
             <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${residence.jr_energy}%` }} />
           </div>
         </div>
         <div className="flex items-center gap-1.5 flex-1">
-          <span className="text-[10px] text-purple-600 whitespace-nowrap">🧠</span>
+          <span className="text-[10px] text-purple-600">🧠</span>
           <div className="flex-1 h-1.5 bg-purple-900/60 rounded-full overflow-hidden">
             <div className="h-full bg-purple-500 rounded-full transition-all" style={{ width: `${xpProgress}%` }} />
           </div>
