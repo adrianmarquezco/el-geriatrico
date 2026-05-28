@@ -463,23 +463,32 @@ export default function GameDashboard({
       )}
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex"
-        style={{ background: 'rgba(7,8,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
-        {TABS.map(t => (
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex pb-safe"
+        style={{ background: 'rgba(7,8,14,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(24px)' }}>
+        {TABS.map(t => {
+          const isActive = tab === t.id
+          return (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 flex flex-col items-center py-2 gap-0 text-[10px] transition-colors relative ${tab === t.id ? 'text-amber-400' : 'text-slate-600'}`}
+            className="flex-1 flex flex-col items-center pt-2 pb-3 gap-0.5 relative transition-all"
+            style={{ color: isActive ? '#fbbf24' : '#475569' }}
           >
-            <span className="text-lg">{t.icon}</span>
-            <span>{t.label}</span>
+            {/* Active glow bar */}
+            {isActive && (
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 rounded-full"
+                style={{ width: 28, height: 2, background: 'linear-gradient(90deg,#f59e0b,#fbbf24)', boxShadow: '0 0 8px rgba(251,191,36,0.8)' }} />
+            )}
+            <span className={`transition-all ${isActive ? 'text-xl' : 'text-lg'}`}>{t.icon}</span>
+            <span className={`text-[10px] font-${isActive ? 'black' : 'medium'} transition-all`}>{t.label}</span>
             {t.badge && t.badge > 0 ? (
-              <span className="absolute top-1.5 right-[8%] bg-red-500 text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold animate-pulse">
+              <span className="absolute top-1.5 right-[10%] bg-red-500 text-white text-[9px] rounded-full w-3.5 h-3.5 flex items-center justify-center font-bold animate-pulse">
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             ) : null}
           </button>
-        ))}
+          )
+        })}
       </nav>
     </div>
   )

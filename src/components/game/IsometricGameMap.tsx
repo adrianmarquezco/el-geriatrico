@@ -359,8 +359,14 @@ export default function IsometricGameMap({
             const hasCrit=zEvs.some(e=>e.urgency==='critical')
             const rd=rooms.find(r=>r.type===zone.type)
             const isBroken=rd?.broken&&zone.type==='tv_room'
+            // Residents in this zone with critical needs (< 20)
+            const zoneResidentIds=zoneResidents[zone.id]||[]
+            const hasNeedCrit=zoneResidentIds.some(rid=>{
+              const r=residents.find(x=>x.id===rid)
+              return r&&(['hunger','medication','companionship'] as const).some(n=>r[n]<20)
+            })
             const cfg=zone.cfg; const bc=isBroken?'#ef4444':cfg.border
-            const glow=isBroken?'239,68,68':hasCrit?'239,68,68':cfg.glow
+            const glow=isBroken?'239,68,68':hasCrit?'239,68,68':hasNeedCrit?'251,146,60':cfg.glow
             const ambient=ROOM_AMBIENT[zone.type]||[]
             return (
               <div key={zone.id} className="absolute" style={{left:px.x+3,top:px.y+3,width:px.w-6,height:px.h-6,background:cfg.bg,border:`1px solid ${bc}`,borderRadius:'12px 12px 6px 6px',boxShadow:`0 7px 0 rgba(0,0,0,0.5),0 11px 18px rgba(0,0,0,0.45),0 0 22px 3px rgba(${glow},0.28),inset 0 1px 0 rgba(255,255,255,0.07)`}}>
@@ -582,31 +588,62 @@ export default function IsometricGameMap({
   )
 }
 
-function StatChip({value,label,color,pulse}:{value:string;label:string;color:string;pulse?:boolean}) {
-  return (
-    <div className="stat-chip">
-      <p className={`font-black text-sm leading-tight ${pulse?'animate-pulse':''}`} style={{color}}>{value}</p>
-      <p className="text-slate-600 text-[10px] mt-0.5">{label}</p>
-    </div>
-  )
-}
-
 function StatsBar({residence,events,residents,dayLabel}:{residence:Residence;events:GameEvent[];residents:Resident[];dayLabel:string}) {
   const critical=events.filter(e=>e.urgency==='critical').length
   const avg=residents.length?Math.round(residents.reduce((s,r)=>s+r.happiness,0)/residents.length):0
   const streak=residence.streak_days??0
+  const avgColor=avg>=60?'#22c55e':avg>=35?'#f97316':'#ef4444'
+  const urgColor=events.length===0?'#22c55e':critical>0?'#ef4444':'#fbbf24'
+
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="grid grid-cols-4 gap-2">
-        <StatChip value={`${(residence.money/1000).toFixed(1)}k€`} label="Fondos" color="#22c55e" />
-        <StatChip value={`Nv.${residence.level}`} label="JR" color="#fbbf24" />
-        <StatChip value={`${avg}%`} label="Ánimo" color={avg>=60?'#22c55e':avg>=30?'#f97316':'#ef4444'} />
-        <StatChip value={events.length===0?'😌':critical>0?`🚨${critical}`:`⚠️${events.length}`} label="Urgencias" color={events.length===0?'#22c55e':critical>0?'#ef4444':'#f97316'} pulse={critical>0} />
+    <div className="rounded-2xl overflow-hidden" style={{background:'rgba(9,11,20,0.95)',border:'1px solid rgba(255,255,255,0.07)'}}>
+      <div className="flex items-stretch divide-x" style={{divideColor:'rgba(255,255,255,0.07)'}}>
+
+        {/* Money */}
+        <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">
+          <p className="text-[10px] text-slate-600 leading-none">Fondos</p>
+          <p className="text-green-400 font-black text-sm leading-tight">{residence.money>=1000?`${(residence.money/1000).toFixed(1)}k€`:`${residence.money}€`}</p>
+        </div>
+
+        {/* Divider */}
+        <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
+
+        {/* JR level */}
+        <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">
+          <p className="text-[10px] text-slate-600 leading-none">JR</p>
+          <p className="text-amber-400 font-black text-sm leading-tight">Nv.{residence.level}</p>
+        </div>
+
+        <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
+
+        {/* Mood */}
+        <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">
+          <p className="text-[10px] text-slate-600 leading-none">Ánimo</p>
+          <p className="font-black text-sm leading-tight" style={{color:avgColor}}>{avg}%</p>
+        </div>
+
+        <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
+
+        {/* Events */}
+        <div className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 ${critical>0?'animate-pulse':''}`}>
+          <p className="text-[10px] text-slate-600 leading-none">Urgencias</p>
+          <p className="font-black text-sm leading-tight" style={{color:urgColor}}>
+            {events.length===0?'😌':critical>0?`🚨${critical}`:`⚠️${events.length}`}
+          </p>
+        </div>
       </div>
-      <div className="flex items-center justify-between px-0.5">
-        <p className="text-slate-700 text-[10px]">{dayLabel}</p>
-        {streak>0 && <p className={`text-[10px] font-black ${streak>=7?'text-yellow-400':streak>=3?'text-orange-400':'text-slate-500'}`}>🔥 {streak}d sin crisis</p>}
-      </div>
+
+      {/* Bottom strip: day + streak */}
+      {(streak>0||dayLabel) && (
+        <div className="flex items-center justify-between px-3 py-1.5 border-t" style={{borderColor:'rgba(255,255,255,0.05)'}}>
+          <p className="text-slate-700 text-[10px]">{dayLabel}</p>
+          {streak>0 && (
+            <p className={`text-[10px] font-black ${streak>=7?'text-yellow-400':streak>=3?'text-orange-400':'text-slate-600'}`}>
+              🔥 {streak} días
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
