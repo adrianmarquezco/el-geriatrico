@@ -177,6 +177,39 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Money pop */
+@keyframes money-pop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.35); }
+  60%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.animate-money-pop { animation: money-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* Alarm pulse (screen edge) */
+@keyframes alarm-edge {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 1; }
+}
+.anim-alarm { animation: alarm-edge 1.2s ease-in-out infinite; }
+
+/* Level-up burst */
+@keyframes level-burst {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+  55%  { opacity: 1; transform: scale(1.12) rotate(3deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.animate-level-burst { animation: level-burst 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* Sparkle */
+@keyframes sparkle {
+  0%   { opacity: 0; transform: scale(0) rotate(0deg); }
+  50%  { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  100% { opacity: 0; transform: scale(0) rotate(360deg); }
+}
+.anim-sparkle       { animation: sparkle 1.4s ease-in-out infinite; }
+.anim-sparkle-delay { animation: sparkle 1.4s ease-in-out 0.55s infinite; }
+
 /* ══════════════════════════════
    COMPONENTS
 ══════════════════════════════ */

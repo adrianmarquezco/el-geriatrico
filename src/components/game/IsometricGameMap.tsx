@@ -423,8 +423,19 @@ export default function IsometricGameMap({
                   </div>
                 )}
 
+                {/* Resident happiness bar */}
+                {zoneResidentIds.length > 0 && (() => {
+                  const ids = zoneResidents[zone.id] || []
+                  const avg = ids.length ? Math.round(ids.reduce((s,id)=>{const r=residents.find(x=>x.id===id);return s+(r?.happiness??50)},0)/ids.length) : 0
+                  const col = avg>=70?'#22c55e':avg>=40?'#f59e0b':'#ef4444'
+                  return (
+                    <div className="absolute bottom-0 inset-x-0 h-1 rounded-b-lg overflow-hidden pointer-events-none" style={{background:'rgba(0,0,0,0.35)'}}>
+                      <div className="h-full rounded-b-lg transition-all duration-1000" style={{width:`${avg}%`,background:col,opacity:0.8}} />
+                    </div>
+                  )
+                })()}
                 {/* Bottom depth */}
-                <div className="absolute bottom-0 inset-x-0 h-1.5 rounded-b-lg pointer-events-none" style={{background:'linear-gradient(to bottom,transparent,rgba(0,0,0,0.4))'}} />
+                <div className="absolute bottom-1 inset-x-0 h-1 pointer-events-none" style={{background:'linear-gradient(to bottom,transparent,rgba(0,0,0,0.3))'}} />
               </div>
             )
           })}

@@ -60,7 +60,9 @@ export default function GameDashboard({
   const [inspectionEvent, setInspectionEvent] = useState<GameEvent | null>(null)
   const [morningBriefing, setMorningBriefing] = useState<Residence['overnight_summary'] | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [levelUpData, setLevelUpData] = useState<{ level: number; icon: string; title: string } | null>(null)
   const prevStoriesCount = useRef(initStories.length)
+  const prevLevelRef     = useRef(init.level)
   const { play, toggle: toggleSound } = useGameSounds()
   const supabase = createClient()
 
@@ -78,6 +80,30 @@ export default function GameDashboard({
       setShowOnboarding(true)
     }
   }, [init.onboarding_done])
+
+  // Level-up detection
+  const LEVEL_DATA: Record<number, { icon: string; title: string }> = {
+    1:'🏠,Auxiliar Junior',2:'📺,Auxiliar',3:'💊,Auxiliar Senior',4:'⛪,Coordinador',
+    5:'🤸,Coordinador Senior',6:'🏅,Director Adjunto',7:'⭐,Director',
+    8:'🌟,Director Estrella',9:'💎,Director Maestro',10:'👑,Leyenda Viviente',
+  } as unknown as Record<number, { icon: string; title: string }>
+
+  const LEVEL_META: Record<number, { icon: string; title: string }> = {
+    1:{ icon:'🏠', title:'Auxiliar Junior' }, 2:{ icon:'📺', title:'Auxiliar' },
+    3:{ icon:'💊', title:'Auxiliar Senior' }, 4:{ icon:'⛪', title:'Coordinador' },
+    5:{ icon:'🤸', title:'Coordinador Senior' }, 6:{ icon:'🏅', title:'Director Adjunto' },
+    7:{ icon:'⭐', title:'Director' }, 8:{ icon:'🌟', title:'Director Estrella' },
+    9:{ icon:'💎', title:'Director Maestro' }, 10:{ icon:'👑', title:'Leyenda Viviente' },
+  }
+
+  useEffect(() => {
+    if (residence.level > prevLevelRef.current) {
+      const meta = LEVEL_META[Math.min(residence.level, 10)] ?? { icon: '⭐', title: `Nivel ${residence.level}` }
+      setLevelUpData({ level: residence.level, ...meta })
+      prevLevelRef.current = residence.level
+      play('levelup')
+    }
+  }, [residence.level])
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = Date.now() + Math.random()
@@ -344,7 +370,9 @@ export default function GameDashboard({
     await fetch('/api/game/onboarding-done', { method: 'POST' })
   }, [])
 
-  const urgentCount = events.length
+  const urgentCount     = events.length
+  const criticalCount   = events.filter(e => e.urgency === 'critical').length
+  const hasCritical     = criticalCount > 0
   const pendingMissions = missions.filter(m => m.completed_at && !m.claimed_at).length
 
   const TABS = [
@@ -360,6 +388,12 @@ export default function GameDashboard({
     <div className="min-h-screen flex flex-col max-w-md mx-auto">
       <ToastContainer toasts={toasts} />
 
+      {/* Critical alarm screen edge glow */}
+      {hasCritical && (
+        <div className="fixed inset-0 pointer-events-none z-[60] anim-alarm"
+          style={{ boxShadow: 'inset 0 0 90px 20px rgba(239,68,68,0.22), inset 0 0 20px 4px rgba(239,68,68,0.18)' }} />
+      )}
+
       {/* Seasonal banner */}
       {seasonalBanner && SEASONAL_BANNER[seasonalBanner] && (
         <div className={`${SEASONAL_BANNER[seasonalBanner].color} text-center py-1.5 text-xs font-semibold text-white`}>
@@ -367,7 +401,7 @@ export default function GameDashboard({
         </div>
       )}
 
-      <TopBar residence={residence} onSoundToggle={toggleSound} />
+      <TopBar residence={residence} hasCritical={hasCritical} onSoundToggle={toggleSound} />
 
       <main className="flex-1 px-3 pb-24 pt-3 flex flex-col gap-3" key={tab}
         style={{ animation: 'slideIn 0.18s ease-out both' }}>
@@ -491,6 +525,37 @@ export default function GameDashboard({
           )
         })}
       </nav>
+
+      {/* ═══ Level-up celebration ═══ */}
+      {levelUpData && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(10px)' }}
+          onClick={() => setLevelUpData(null)}>
+          <div className="text-center px-8 animate-level-burst">
+            {/* Sparkles */}
+            <div className="relative inline-block">
+              <div className="absolute -top-4 -left-4 text-2xl anim-sparkle">✨</div>
+              <div className="absolute -top-2 -right-4 text-xl anim-sparkle-delay">⭐</div>
+              <div className="absolute -bottom-2 -left-2 text-lg anim-sparkle">🌟</div>
+              <div className="w-28 h-28 rounded-3xl flex items-center justify-center text-6xl mx-auto mb-6"
+                style={{
+                  background: 'linear-gradient(135deg,rgba(245,158,11,0.3),rgba(251,191,36,0.1))',
+                  border: '2px solid rgba(245,158,11,0.6)',
+                  boxShadow: '0 0 40px rgba(245,158,11,0.4), 0 0 80px rgba(245,158,11,0.15)',
+                }}>
+                {levelUpData.icon}
+              </div>
+            </div>
+            <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-1">Subida de nivel</p>
+            <p className="text-amber-400 font-black text-5xl mb-2">Nivel {levelUpData.level}</p>
+            <p className="text-slate-200 font-black text-xl mb-8">{levelUpData.title}</p>
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}>
+              <span className="text-amber-400 font-bold text-sm">Toca para continuar</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
