@@ -351,7 +351,7 @@ export default function GameDashboard({
     }).then(() => fetchState())
   }, [addToast, play, fetchState])
 
-  const handleCare = useCallback(async (residentId: string, action: 'feed' | 'medicate' | 'chat') => {
+  const handleCare = useCallback(async (residentId: string, action: 'feed' | 'medicate' | 'chat' | 'shower' | 'entertain') => {
     const res = await fetch('/api/game/care', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -360,8 +360,11 @@ export default function GameDashboard({
     const data = await res.json()
     if (data.error) { addToast(data.error, 'warning'); return }
     await fetchState()
-    const labels = { feed: '🍽️ Alimentado', medicate: '💊 Medicado', chat: '💬 Animado' }
-    addToast(labels[action], 'success')
+    const labels: Record<string, string> = {
+      feed: '🍽️ Alimentado', medicate: '💊 Medicado', chat: '💬 Animado',
+      shower: '🚿 Duchado', entertain: '📺 Entretenido',
+    }
+    addToast(labels[action] ?? '✅ Hecho', 'success')
     play('tap')
   }, [fetchState, addToast, play])
 

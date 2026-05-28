@@ -5,6 +5,8 @@ const CARE_CONFIG = {
   feed:     { field: 'hunger',        boost: 30, moneyCost: 15, energyCost: 0  },
   medicate: { field: 'medication',    boost: 30, moneyCost: 25, energyCost: 0  },
   chat:     { field: 'companionship', boost: 25, moneyCost: 0,  energyCost: 10 },
+  shower:   { field: 'hygiene',       boost: 35, moneyCost: 10, energyCost: 0  },
+  entertain:{ field: 'entertainment', boost: 25, moneyCost: 5,  energyCost: 5  },
 } as const
 
 export async function POST(request: Request) {
