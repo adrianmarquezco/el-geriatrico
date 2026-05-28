@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Resident, GameEvent, Room, Residence } from '@/lib/types'
 
-const ROOM_H = 118
+const ROOM_H = 148
 const CORRIDOR_H = 24
 
 /* ─── Room visual config ─── */
@@ -241,8 +241,18 @@ export default function IsometricGameMap({
     const zone=residentZone[rid]; if (!zone) return null
     const px=zonePx(zone,bedroomRows,containerW)
     const ids=zoneResidents[zone.id]||[]; const idx=ids.indexOf(rid); const count=ids.length
-    const XPOS=count===1?[0.5]:count===2?[0.3,0.7]:count===3?[0.22,0.5,0.78]:[0.18,0.38,0.62,0.82]
-    return { x: px.x+px.w*XPOS[Math.min(idx,XPOS.length-1)]-17, y: px.y+26 }
+    // 2-per-row grid: row 0 = top, row 1 = bottom
+    const perRow = 2
+    const col = idx % perRow
+    const row = Math.floor(idx / perRow)
+    const rowCount = Math.ceil(count / perRow)
+    // X: spread across half or full width depending on items in this row
+    const itemsInRow = Math.min(perRow, count - row * perRow)
+    const XCOLS: Record<number,number[]> = { 1:[0.5], 2:[0.28,0.72] }
+    const xFrac = (XCOLS[itemsInRow] ?? [0.28,0.72])[col]
+    // Y: if 1 row centre vertically, if 2 rows split
+    const yOffset = rowCount === 1 ? 38 : row === 0 ? 28 : 74
+    return { x: px.x + px.w * xFrac - 17, y: px.y + yOffset }
   }
 
   // ─── Collectibles ───
