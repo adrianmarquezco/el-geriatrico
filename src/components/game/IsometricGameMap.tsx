@@ -597,7 +597,7 @@ function StatsBar({residence,events,residents,dayLabel}:{residence:Residence;eve
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{background:'rgba(9,11,20,0.95)',border:'1px solid rgba(255,255,255,0.07)'}}>
-      <div className="flex items-stretch divide-x" style={{divideColor:'rgba(255,255,255,0.07)'}}>
+      <div className="flex items-stretch">
 
         {/* Money */}
         <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">
