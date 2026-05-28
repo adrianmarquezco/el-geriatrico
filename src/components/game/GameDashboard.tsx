@@ -1,13 +1,15 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Residence, Resident, GameEvent, Room, Toast, StaffMember, DailyMission, Story, Achievement } from '@/lib/types'
+import { Residence, Resident, GameEvent, Room, Toast, StaffMember, DailyMission, Story, Achievement, ScheduledActivity } from '@/lib/types'
 import TopBar from './TopBar'
 import IsometricGameMap from './IsometricGameMap'
 import ResidentsPanel from './ResidentsPanel'
 import EventsPanel from './EventsPanel'
 import RoomsPanel from './RoomsPanel'
 import StaffPanel from './StaffPanel'
+import SuppliesWidget from './SuppliesWidget'
+import ActivitiesWidget from './ActivitiesWidget'
 import StoriesPanel from './StoriesPanel'
 import MissionsWidget from './MissionsWidget'
 import MiniGameModal from './MiniGameModal'
@@ -31,6 +33,7 @@ interface Props {
   missions: DailyMission[]
   stories: Story[]
   achievements: Achievement[]
+  activities: ScheduledActivity[]
 }
 
 const SEASONAL_BANNER: Record<string, { emoji: string; label: string; color: string }> = {
@@ -42,7 +45,7 @@ const SEASONAL_BANNER: Record<string, { emoji: string; label: string; color: str
 export default function GameDashboard({
   residence: init, residents: initR, events: initE,
   rooms: initRooms, staff: initStaff, missions: initMissions,
-  stories: initStories, achievements: initAch,
+  stories: initStories, achievements: initAch, activities: initActivities,
 }: Props) {
   const [residence, setResidence] = useState<Residence>(init)
   const [residents, setResidents] = useState<Resident[]>(initR)
@@ -52,6 +55,7 @@ export default function GameDashboard({
   const [missions, setMissions] = useState<DailyMission[]>(initMissions)
   const [stories, setStories] = useState<Story[]>(initStories)
   const [achievements, setAchievements] = useState<Achievement[]>(initAch)
+  const [activities, setActivities] = useState<ScheduledActivity[]>(initActivities)
   const [tab, setTab] = useState<Tab>('mapa')
   const [toasts, setToasts] = useState<Toast[]>([])
   const [seasonalBanner, setSeasonalBanner] = useState<string | null>(null)
@@ -113,7 +117,7 @@ export default function GameDashboard({
 
   const fetchState = useCallback(async () => {
     const today = new Date().toISOString().split('T')[0]
-    const [{ data: res }, { data: res2 }, { data: ev }, { data: ro }, { data: st }, { data: ms }, { data: str }, { data: ach }] = await Promise.all([
+    const [{ data: res }, { data: res2 }, { data: ev }, { data: ro }, { data: st }, { data: ms }, { data: str }, { data: ach }, { data: acts }] = await Promise.all([
       supabase.from('residences').select('*').eq('id', init.id).single(),
       supabase.from('residents').select('*').eq('residence_id', init.id).order('created_at'),
       supabase.from('events').select('*, residents(name)').eq('residence_id', init.id).is('resolved_at', null).order('created_at'),
@@ -122,6 +126,7 @@ export default function GameDashboard({
       supabase.from('daily_missions').select('*').eq('residence_id', init.id).eq('mission_date', today),
       supabase.from('stories').select('*').eq('residence_id', init.id).order('chapter'),
       supabase.from('achievements').select('*').eq('residence_id', init.id),
+      supabase.from('scheduled_activities').select('*').eq('residence_id', init.id).is('completed_at', null).order('created_at', { ascending: false }),
     ])
     if (res)  setResidence(res)
     if (res2) setResidents(res2)
@@ -130,6 +135,7 @@ export default function GameDashboard({
     if (st)   setStaff(st)
     if (ms)   setMissions(ms)
     if (ach)  setAchievements(ach)
+    if (acts) setActivities(acts)
     if (str) {
       if (str.length > prevStoriesCount.current) {
         const newest = str[str.length - 1]
@@ -351,6 +357,55 @@ export default function GameDashboard({
     }).then(() => fetchState())
   }, [addToast, play, fetchState])
 
+  const handleBuySupplies = useCallback(async (supplyType: string) => {
+    const res = await fetch('/api/game/buy-supplies', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supplyType }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    addToast(`+${data.qty} suministros 📦`, 'success')
+    play('coin')
+  }, [fetchState, addToast, play])
+
+  const handleAssignStaff = useCallback(async (staffId: string, roomType: string | null) => {
+    const res = await fetch('/api/game/assign-staff', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staffId, roomType }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    addToast(roomType ? `📍 Asignado a ${roomType.replace('_',' ')}` : '📍 Sin asignar', 'success')
+  }, [fetchState, addToast])
+
+  const handleRoomAction = useCallback(async (roomType: string) => {
+    const res = await fetch('/api/game/room-action', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roomType }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    addToast(`✅ ${data.affected} residente${data.affected !== 1 ? 's' : ''} atendidos`, 'success')
+    play('tap')
+    if (navigator.vibrate) navigator.vibrate([30, 20, 30])
+  }, [fetchState, addToast, play])
+
+  const handleCompleteActivity = useCallback(async (activityId: string) => {
+    const res = await fetch('/api/game/complete-activity', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activityId }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    addToast(`🎉 +${data.money}€ +${data.xp}XP`, 'success')
+    play('mission')
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50])
+  }, [fetchState, addToast, play])
+
   const handleCare = useCallback(async (residentId: string, action: 'feed' | 'medicate' | 'chat' | 'shower' | 'entertain') => {
     const res = await fetch('/api/game/care', {
       method: 'POST',
@@ -414,20 +469,25 @@ export default function GameDashboard({
         )}
 
         {tab === 'mapa' && (
-          <IsometricGameMap
-            residence={residence}
-            residents={residents}
-            events={events}
-            rooms={rooms}
-            onResolve={handleResolve}
-            onGoToBuild={() => setTab('obras')}
-            onRepairRoom={handleRepairRoom}
-            onOpenMiniGame={handleOpenMiniGame}
-            onFamilyVisit={handleFamilyVisit}
-            onInspection={handleInspection}
-            onCollect={handleCollect}
-            onCare={handleCare}
-          />
+          <>
+            <ActivitiesWidget activities={activities} onComplete={handleCompleteActivity} />
+            <IsometricGameMap
+              residence={residence}
+              residents={residents}
+              events={events}
+              rooms={rooms}
+              onResolve={handleResolve}
+              onGoToBuild={() => setTab('obras')}
+              onRepairRoom={handleRepairRoom}
+              onOpenMiniGame={handleOpenMiniGame}
+              onFamilyVisit={handleFamilyVisit}
+              onInspection={handleInspection}
+              onCollect={handleCollect}
+              onCare={handleCare}
+              onRoomAction={handleRoomAction}
+            />
+            <SuppliesWidget residence={residence} onBuy={handleBuySupplies} />
+          </>
         )}
         {tab === 'residentes' && (
           <ResidentsPanel
@@ -439,7 +499,7 @@ export default function GameDashboard({
         )}
         {tab === 'urgencias'  && <EventsPanel events={events} onResolve={handleResolve} />}
         {tab === 'obras'      && <RoomsPanel rooms={rooms} money={residence.money} onBuild={handleBuild} onUpgrade={handleUpgrade} />}
-        {tab === 'personal'   && <StaffPanel staff={staff} money={residence.money} onHire={handleHire} onFire={handleFire} />}
+        {tab === 'personal'   && <StaffPanel staff={staff} rooms={rooms} money={residence.money} onHire={handleHire} onFire={handleFire} onAssign={handleAssignStaff} />}
         {tab === 'logros'     && (
           <div className="flex flex-col gap-3">
             <UnlockTree residence={residence} />

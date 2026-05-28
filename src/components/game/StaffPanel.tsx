@@ -1,25 +1,36 @@
 'use client'
 import { useState } from 'react'
-import { StaffMember } from '@/lib/types'
+import { StaffMember, Room } from '@/lib/types'
 
 const STAFF_META = {
-  nurse:       { icon: '👩‍⚕️', name: 'Enfermera',  desc: 'Gestiona medicación automáticamente. Reduce urgencias críticas.',  cost: 3000, salary: 60, effect: 'Medicación −20%', glow: '236,72,153',  border: '#ec4899' },
-  cook:        { icon: '👨‍🍳', name: 'Cocinero',   desc: 'Alimenta a los residentes. Encarna seguirá quejándose igualmente.', cost: 2000, salary: 40, effect: 'Hambre −20%',     glow: '234,88,12',   border: '#f97316' },
-  cleaner:     { icon: '🧹',  name: 'Limpiadora', desc: 'Mantiene la higiene. Imprescindible desde el tercer residente.',     cost: 1500, salary: 30, effect: 'Higiene −20%',    glow: '59,130,246',  border: '#3b82f6' },
-  entertainer: { icon: '🎭',  name: 'Animador',   desc: 'Organiza actividades. Sebastián lo intenta muy fuerte.',             cost: 2500, salary: 45, effect: 'Ocio −15%',       glow: '168,85,247',  border: '#a855f7' },
+  nurse:       { icon: '👩‍⚕️', name: 'Enfermera',  desc: 'Gestiona medicación automáticamente. Asignada a una sala la potencia.',  cost: 3000, salary: 60, effect: 'Medicación −20%', glow: '236,72,153',  border: '#ec4899', suggestedRoom: 'infirmary'   },
+  cook:        { icon: '👨‍🍳', name: 'Cocinero',   desc: 'Reduce el hambre. Asignado al comedor la mejora activamente.',           cost: 2000, salary: 40, effect: 'Hambre −20%',     glow: '234,88,12',   border: '#f97316', suggestedRoom: 'dining_room' },
+  cleaner:     { icon: '🧹',  name: 'Limpiadora', desc: 'Mantiene la higiene. Asignada mejora activamente a los residentes.',      cost: 1500, salary: 30, effect: 'Higiene −20%',    glow: '59,130,246',  border: '#3b82f6', suggestedRoom: 'barbershop'  },
+  entertainer: { icon: '🎭',  name: 'Animador',   desc: 'Reduce el aburrimiento. Asignado a TV o jardín da boost extra.',          cost: 2500, salary: 45, effect: 'Ocio −15%',       glow: '168,85,247',  border: '#a855f7', suggestedRoom: 'tv_room'     },
 } as const
+
+const ROOM_LABELS: Record<string, string> = {
+  bedroom: '🛏️ Habitación', tv_room: '📺 Sala TV', dining_room: '🍽️ Comedor',
+  garden: '🌿 Jardín', infirmary: '🏥 Enfermería', chapel: '⛪ Capilla',
+  barbershop: '💈 Peluquería', cards_room: '🃏 Cartas', physiotherapy: '🤸 Fisio',
+}
 
 interface Props {
   staff: StaffMember[]
+  rooms: Room[]
   money: number
   onHire: (type: string) => Promise<boolean>
   onFire: (staffId: string) => Promise<void>
+  onAssign: (staffId: string, roomType: string | null) => Promise<void>
 }
 
-export default function StaffPanel({ staff, money, onHire, onFire }: Props) {
-  const [hiring,  setHiring]  = useState<string | null>(null)
-  const [firing,  setFiring]  = useState<string | null>(null)
-  const [confirm, setConfirm] = useState<string | null>(null)
+export default function StaffPanel({ staff, rooms, money, onHire, onFire, onAssign }: Props) {
+  const [hiring,    setHiring]    = useState<string | null>(null)
+  const [firing,    setFiring]    = useState<string | null>(null)
+  const [confirm,   setConfirm]   = useState<string | null>(null)
+  const [assigning, setAssigning] = useState<string | null>(null)
+  const [showRooms, setShowRooms] = useState<string | null>(null)
+  const builtRoomTypes = Array.from(new Set(rooms.map(r => r.type)))
 
   const hiredTypes  = new Set(staff.map(s => s.type))
   const totalSalary = staff.reduce((s, m) => s + m.salary_per_hour, 0)
@@ -30,6 +41,12 @@ export default function StaffPanel({ staff, money, onHire, onFire }: Props) {
   async function handleFire(id: string) {
     if (confirm !== id) { setConfirm(id); return }
     setConfirm(null); setFiring(id); await onFire(id); setFiring(null)
+  }
+  async function handleAssign(staffId: string, roomType: string | null) {
+    setShowRooms(null)
+    setAssigning(staffId)
+    await onAssign(staffId, roomType)
+    setAssigning(null)
   }
 
   return (
@@ -78,6 +95,31 @@ export default function StaffPanel({ staff, money, onHire, onFire }: Props) {
                     <p className="text-[10px] mt-0.5" style={{ color: `rgba(${meta.glow},0.7)` }}>
                       {meta.effect} · {s.salary_per_hour}€/h
                     </p>
+                    {/* Room assignment */}
+                    <button
+                      onClick={() => setShowRooms(showRooms === s.id ? null : s.id)}
+                      disabled={assigning === s.id}
+                      className="mt-1.5 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95 transition-all"
+                      style={{ background: s.assigned_room_type ? `rgba(${meta.glow},0.18)` : 'rgba(255,255,255,0.05)', border: `1px solid ${s.assigned_room_type ? `rgba(${meta.glow},0.4)` : 'rgba(255,255,255,0.08)'}`, color: s.assigned_room_type ? meta.border : '#475569' }}>
+                      {assigning === s.id ? '⏳' : s.assigned_room_type ? `📍 ${ROOM_LABELS[s.assigned_room_type] ?? s.assigned_room_type}` : '📍 Sin asignar'}
+                      <span className="opacity-50">▾</span>
+                    </button>
+                    {showRooms === s.id && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        <button onClick={() => handleAssign(s.id, null)}
+                          className="px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#64748b' }}>
+                          Quitar
+                        </button>
+                        {builtRoomTypes.map(rt => (
+                          <button key={rt} onClick={() => handleAssign(s.id, rt)}
+                            className="px-2 py-1 rounded-lg text-[9px] font-bold active:scale-95"
+                            style={{ background: `rgba(${meta.glow},0.15)`, border: `1px solid rgba(${meta.glow},0.3)`, color: meta.border }}>
+                            {ROOM_LABELS[rt] ?? rt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => handleFire(s.id)}

@@ -2,11 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 const CARE_CONFIG = {
-  feed:     { field: 'hunger',        boost: 30, moneyCost: 15, energyCost: 0  },
-  medicate: { field: 'medication',    boost: 30, moneyCost: 25, energyCost: 0  },
-  chat:     { field: 'companionship', boost: 25, moneyCost: 0,  energyCost: 10 },
-  shower:   { field: 'hygiene',       boost: 35, moneyCost: 10, energyCost: 0  },
-  entertain:{ field: 'entertainment', boost: 25, moneyCost: 5,  energyCost: 5  },
+  feed:     { field: 'hunger',        boost: 30, moneyCost: 15, energyCost: 0,  supplyField: 'supply_food'          },
+  medicate: { field: 'medication',    boost: 30, moneyCost: 25, energyCost: 0,  supplyField: 'supply_medicine'      },
+  chat:     { field: 'companionship', boost: 25, moneyCost: 0,  energyCost: 10, supplyField: null                   },
+  shower:   { field: 'hygiene',       boost: 35, moneyCost: 10, energyCost: 0,  supplyField: 'supply_soap'          },
+  entertain:{ field: 'entertainment', boost: 25, moneyCost: 5,  energyCost: 5,  supplyField: 'supply_entertainment' },
 } as const
 
 export async function POST(request: Request) {
@@ -19,13 +19,20 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: residence } = await supabase
-    .from('residences').select('id, money, jr_energy').eq('user_id', user.id).single()
+    .from('residences').select('id, money, jr_energy, supply_food, supply_medicine, supply_soap, supply_entertainment').eq('user_id', user.id).single()
   if (!residence) return NextResponse.json({ error: 'No residence' }, { status: 404 })
 
   if (cfg.moneyCost > 0 && residence.money < cfg.moneyCost)
     return NextResponse.json({ error: 'Sin fondos' }, { status: 400 })
   if (cfg.energyCost > 0 && residence.jr_energy < cfg.energyCost)
     return NextResponse.json({ error: 'Sin energía' }, { status: 400 })
+
+  const sf = cfg.supplyField
+  if (sf) {
+    const stock = (residence as Record<string, number>)[sf] ?? 0
+    if (stock <= 0)
+      return NextResponse.json({ error: `Sin suministros: compra más ${sf.replace('supply_','').replace('_',' ')}` }, { status: 400 })
+  }
 
   const { data: resident } = await supabase
     .from('residents').select('*').eq('id', residentId).eq('residence_id', residence.id).single()
@@ -49,13 +56,16 @@ export async function POST(request: Request) {
   )
   updates.happiness = Math.min(100, Math.max(0, baseHappiness))
 
+  const residenceUpdate: Record<string, number> = {}
+  if (cfg.moneyCost > 0)  residenceUpdate.money     = residence.money - cfg.moneyCost
+  if (cfg.energyCost > 0) residenceUpdate.jr_energy = Math.max(0, residence.jr_energy - cfg.energyCost)
+  if (sf) residenceUpdate[sf] = Math.max(0, ((residence as Record<string, number>)[sf] ?? 0) - 1)
+
   await Promise.all([
     supabase.from('residents').update(updates).eq('id', residentId),
-    cfg.moneyCost > 0
-      ? supabase.from('residences').update({ money: residence.money - cfg.moneyCost }).eq('id', residence.id)
-      : cfg.energyCost > 0
-        ? supabase.from('residences').update({ jr_energy: Math.max(0, residence.jr_energy - cfg.energyCost) }).eq('id', residence.id)
-        : Promise.resolve(),
+    Object.keys(residenceUpdate).length > 0
+      ? supabase.from('residences').update(residenceUpdate).eq('id', residence.id)
+      : Promise.resolve(),
   ])
 
   return NextResponse.json({ ok: true, happiness: updates.happiness })

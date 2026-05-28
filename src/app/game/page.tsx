@@ -13,7 +13,7 @@ export default async function GamePage() {
 
   const today = new Date().toISOString().split('T')[0]
 
-  const [{ data: residents }, { data: events }, { data: rooms }, { data: staff }, { data: missions }, { data: stories }, { data: achievements }] = await Promise.all([
+  const [{ data: residents }, { data: events }, { data: rooms }, { data: staff }, { data: missions }, { data: stories }, { data: achievements }, { data: activities }] = await Promise.all([
     supabase.from('residents').select('*').eq('residence_id', residence.id).order('created_at'),
     supabase.from('events').select('*, residents(name)').eq('residence_id', residence.id).is('resolved_at', null).order('created_at'),
     supabase.from('rooms').select('*').eq('residence_id', residence.id),
@@ -21,6 +21,7 @@ export default async function GamePage() {
     supabase.from('daily_missions').select('*').eq('residence_id', residence.id).eq('mission_date', today),
     supabase.from('stories').select('*').eq('residence_id', residence.id).order('chapter'),
     supabase.from('achievements').select('*').eq('residence_id', residence.id),
+    supabase.from('scheduled_activities').select('*').eq('residence_id', residence.id).is('completed_at', null).order('created_at', { ascending: false }),
   ])
 
   return (
@@ -33,6 +34,7 @@ export default async function GamePage() {
       missions={missions || []}
       stories={stories || []}
       achievements={achievements || []}
+      activities={activities || []}
     />
   )
 }

@@ -15,6 +15,10 @@ export interface Residence {
   streak_days: number
   best_streak: number
   onboarding_done: boolean
+  supply_food: number
+  supply_medicine: number
+  supply_soap: number
+  supply_entertainment: number
   created_at: string
 }
 
@@ -83,6 +87,21 @@ export interface StaffMember {
   level: number
   salary_per_hour: number
   hired_at: string
+  assigned_room_type: string | null
+}
+
+export interface ScheduledActivity {
+  id: string
+  residence_id: string
+  type: string
+  label: string
+  icon: string
+  affects_need: string | null
+  affects_boost: number
+  reward_money: number
+  reward_xp: number
+  completed_at: string | null
+  created_at: string
 }
 
 export interface DailyMission {

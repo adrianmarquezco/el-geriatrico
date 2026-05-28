@@ -156,12 +156,26 @@ interface Props {
   onInspection?: (ev:GameEvent) => void
   onCollect?: (value:number, type:'money'|'xp') => void
   onCare?: (residentId:string, action:'feed'|'medicate'|'chat'|'shower'|'entertain') => Promise<void>
+  onRoomAction?: (roomType:string) => Promise<void>
 }
+
+const ROOM_ACTION_CFG: Record<string, { label: string; cost: string; emoji: string }> = {
+  dining_room:   { label: 'Servir almuerzo', cost: '30€',  emoji: '🍽️' },
+  infirmary:     { label: 'Ronda pastillas', cost: '25€',  emoji: '💊' },
+  barbershop:    { label: 'Sesión higiene',  cost: '20€',  emoji: '🚿' },
+  tv_room:       { label: 'Poner película',  cost: '10€·8⚡', emoji: '📺' },
+  cards_room:    { label: 'Partida',         cost: '5⚡',  emoji: '🃏' },
+  garden:        { label: 'Paseo guiado',    cost: '6⚡',  emoji: '🌿' },
+  chapel:        { label: 'Rezo grupal',     cost: '4⚡',  emoji: '⛪' },
+  bedroom:       { label: 'Cambiar sábanas', cost: '10€',  emoji: '🛏️' },
+  physiotherapy: { label: 'Sesión fisio',    cost: '20€',  emoji: '🤸' },
+}
+const ROOM_ACTION_COOLDOWN_MS = 4 * 60 * 1000 // 4 min
 
 export default function IsometricGameMap({
   residence, residents, events, rooms,
   onResolve, onGoToBuild, onRepairRoom,
-  onOpenMiniGame, onFamilyVisit, onInspection, onCollect, onCare
+  onOpenMiniGame, onFamilyVisit, onInspection, onCollect, onCare, onRoomAction
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerW, setContainerW] = useState(340)
@@ -176,6 +190,8 @@ export default function IsometricGameMap({
   const [dayTint, setDayTint] = useState<{overlay:string;label:string}>({overlay:'rgba(0,0,0,0)',label:'🌤'})
   const [popupResident, setPopupResident] = useState<string|null>(null)
   const [caringAction, setCaringAction] = useState<string|null>(null)
+  const [roomActionLoading, setRoomActionLoading] = useState<string|null>(null)
+  const [roomCooldowns, setRoomCooldowns] = useState<Record<string,number>>({})
   useEffect(() => { setDayTint(getDayTint()) }, [])
 
   useEffect(() => {
@@ -291,6 +307,20 @@ export default function IsometricGameMap({
     if (ev.type==='family_visit'&&onFamilyVisit) { onFamilyVisit(ev,r); return }
     if (['medication','fallen','hunger','tv_dispute'].includes(ev.type)&&onOpenMiniGame) { onOpenMiniGame(ev,r); return }
     setResolving(ev.id); await onResolve(ev.id); setResolving(null)
+  }
+
+  async function handleRoomActionClick(roomType: string) {
+    if (!onRoomAction) return
+    setRoomActionLoading(roomType)
+    await onRoomAction(roomType)
+    setRoomActionLoading(null)
+    setRoomCooldowns(p => ({ ...p, [roomType]: Date.now() }))
+  }
+
+  function getRoomCooldownLeft(roomType: string): number {
+    const last = roomCooldowns[roomType]
+    if (!last) return 0
+    return Math.max(0, Math.ceil((last + ROOM_ACTION_COOLDOWN_MS - Date.now()) / 1000))
   }
 
   async function handlePopupCare(residentId: string, action: 'feed'|'medicate'|'chat'|'shower'|'entertain') {
@@ -488,6 +518,27 @@ export default function IsometricGameMap({
                     </>
                   )}
                 </div>
+
+                {/* ── Room action button (when no events) ── */}
+                {zEvs.length === 0 && onRoomAction && ROOM_ACTION_CFG[zone.type] && (() => {
+                  const act = ROOM_ACTION_CFG[zone.type]
+                  const cdLeft = getRoomCooldownLeft(zone.type)
+                  const isLoading = roomActionLoading === zone.type
+                  const onCd = cdLeft > 0
+                  const mins = Math.floor(cdLeft / 60)
+                  const secs = cdLeft % 60
+                  return (
+                    <button
+                      onClick={() => handleRoomActionClick(zone.type)}
+                      disabled={isLoading || onCd}
+                      className="shrink-0 flex items-center justify-center gap-1.5 mx-2 mb-2 px-2 py-1.5 rounded-xl text-[9px] font-black active:scale-95 transition-all disabled:opacity-40"
+                      style={{ background: onCd ? 'rgba(255,255,255,0.04)' : `rgba(${glow},0.15)`, border: `1px solid ${onCd ? 'rgba(255,255,255,0.07)' : `rgba(${glow},0.35)`}`, color: onCd ? '#475569' : cfg.text }}>
+                      <span className="text-sm leading-none">{isLoading ? '⏳' : onCd ? '⏱' : act.emoji}</span>
+                      <span>{isLoading ? 'Un momento...' : onCd ? `${mins}:${String(secs).padStart(2,'0')}` : act.label}</span>
+                      {!isLoading && !onCd && <span className="opacity-50 ml-0.5">{act.cost}</span>}
+                    </button>
+                  )
+                })()}
 
                 {/* ── Event buttons ── */}
                 {zEvs.length>0 && (
