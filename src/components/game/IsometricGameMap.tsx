@@ -333,11 +333,11 @@ export default function IsometricGameMap({
         </div>
       )}
 
-      {/* ═══ 3D MAP ═══ */}
-      <div className="w-full rounded-2xl overflow-hidden relative" style={{border:'1px solid rgba(255,255,255,0.07)',perspective:'1100px',perspectiveOrigin:'50% -15%'}}>
+      {/* ═══ MAP ═══ */}
+      <div className="w-full rounded-2xl relative" style={{border:'1px solid rgba(255,255,255,0.07)',overflow:'visible'}}>
 
-        {/* Rotated 3D map layer */}
-        <div ref={containerRef} className="relative w-full" style={{transform:'rotateX(13deg) scale(1.025)',transformOrigin:'50% 0%',height:`${totalH}px`,background:'linear-gradient(180deg,#09090f 0%,#07080d 100%)'}}>
+        {/* Map layer */}
+        <div ref={containerRef} className="relative w-full rounded-2xl overflow-hidden" style={{height:`${totalH}px`,background:'linear-gradient(180deg,#09090f 0%,#07080d 100%)'}}>
 
           {/* Floor grid */}
           <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:`linear-gradient(rgba(80,100,200,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(80,100,200,0.06) 1px,transparent 1px)`,backgroundSize:'38px 38px'}} />
@@ -370,7 +370,7 @@ export default function IsometricGameMap({
 
             return (
               <div key={zone.id} className="absolute flex flex-col" style={{
-                left: px.x+3, top: px.y+3, width: px.w-6, height: px.h-6,
+                left: px.x+4, top: px.y+4, width: px.w-8, height: px.h-8,
                 background: cfg.bg,
                 border: `1px solid ${bc}`,
                 borderRadius: '12px 12px 6px 6px',
@@ -531,10 +531,6 @@ export default function IsometricGameMap({
             <div className="absolute inset-0 pointer-events-none z-30 transition-all duration-[3000ms]" style={{background:dayTint.overlay}} />
           )}
 
-          {/* Build button */}
-          <button onClick={onGoToBuild} className="absolute bottom-2.5 right-2.5 z-20 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[10px] font-bold active:scale-95 transition-transform" style={{background:'rgba(245,158,11,0.15)',border:'1px solid rgba(245,158,11,0.3)',color:'#fbbf24',backdropFilter:'blur(8px)'}}>
-            🔨 Nueva sala
-          </button>
         </div>
 
         {/* ─ Resident popup (outside rotated div, inside perspective container) ─ */}
@@ -613,6 +609,13 @@ export default function IsometricGameMap({
           </div>
         )}
       </div>
+
+      {/* Nueva sala — fuera del mapa para que siempre sea visible */}
+      <button onClick={onGoToBuild}
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl text-sm font-bold active:scale-[0.97] transition-transform"
+        style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.28)',color:'#fbbf24'}}>
+        🔨 Construir nueva sala
+      </button>
     </div>
   )
 }
