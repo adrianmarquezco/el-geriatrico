@@ -369,7 +369,8 @@ export default function GameDashboard({
 
       <TopBar residence={residence} onSoundToggle={toggleSound} />
 
-      <main className="flex-1 px-3 pb-24 pt-3 flex flex-col gap-3">
+      <main className="flex-1 px-3 pb-24 pt-3 flex flex-col gap-3" key={tab}
+        style={{ animation: 'slideIn 0.18s ease-out both' }}>
         {/* Missions widget on map and urgencias */}
         {(tab === 'mapa' || tab === 'urgencias') && missions.length > 0 && (
           <MissionsWidget missions={missions} onClaim={handleClaimMission} />
