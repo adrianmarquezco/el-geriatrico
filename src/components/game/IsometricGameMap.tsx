@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Resident, GameEvent, Room, Residence } from '@/lib/types'
 
-const ROOM_H = 148
+const ROOM_H = 168
 const CORRIDOR_H = 24
 
 /* ─── Room visual config ─── */
@@ -122,8 +122,10 @@ function buildZones(rooms: Room[]): Zone[] {
   if (beds.length % 2 !== 0 && beds.length > 0)
     zones.push({ id: 'slot-empty', type: 'empty', label:'', icon:'', col:1, row:Math.floor(beds.length/2), isOther:false, cfg:{icon:'',label:'',bg:'#07080e',border:'#12122a',text:'#111',glow:'0,0,0'} })
   let col=0, row=0
-  others.forEach(type => {
-    const full = type === 'garden'
+  others.forEach((type, idx) => {
+    const isLast = idx === others.length - 1
+    // full-width: garden always, or lone room at end of row
+    const full = type === 'garden' || (isLast && col === 0 && others.length > 0)
     if (full && col !== 0) { col=0; row++ }
     zones.push({ id:type, type, label: ROOM_CFG[type]?.label||type, icon: ROOM_CFG[type]?.icon||'🏠', col: full?2:col, row, isOther:true, cfg: ROOM_CFG[type]||ROOM_CFG.bedroom })
     if (full) { row++; col=0 } else { col++; if (col>=2) { col=0; row++ } }
@@ -248,10 +250,11 @@ export default function IsometricGameMap({
     const rowCount = Math.ceil(count / perRow)
     // X: spread across half or full width depending on items in this row
     const itemsInRow = Math.min(perRow, count - row * perRow)
-    const XCOLS: Record<number,number[]> = { 1:[0.5], 2:[0.28,0.72] }
-    const xFrac = (XCOLS[itemsInRow] ?? [0.28,0.72])[col]
-    // Y: if 1 row centre vertically, if 2 rows split
-    const yOffset = rowCount === 1 ? 38 : row === 0 ? 28 : 74
+    const XCOLS: Record<number,number[]> = { 1:[0.5], 2:[0.27,0.73] }
+    const xFrac = (XCOLS[itemsInRow] ?? [0.27,0.73])[col]
+    // Y: place residents BELOW the room header (~46px from room top)
+    // ROOM_H=168, tile=162: header≈46px, events from bottom≈72px → middle≈46..90
+    const yOffset = rowCount === 1 ? 58 : row === 0 ? 48 : 98
     return { x: px.x + px.w * xFrac - 17, y: px.y + yOffset }
   }
 
