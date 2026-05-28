@@ -80,8 +80,8 @@ export default function AchievementsPanel({ achievements, residence }: Props) {
             <button
               key={ach.type}
               onClick={() => setSelected(selected === ach.type ? null : ach.type)}
-              className={`card py-3 text-center transition-all active:scale-95 ${selected === ach.type ? 'ring-1' : ''}`}
-              style={selected === ach.type ? { ringColor: rarityColor } : undefined}
+              className="card py-3 text-center transition-all active:scale-95"
+              style={selected === ach.type ? { outline: `1px solid ${rarityColor}`, boxShadow: `0 0 8px ${rarityColor}44` } : undefined}
             >
               <div className={`text-2xl mb-1 ${done ? '' : 'grayscale opacity-30'}`}>
                 {done ? ach.icon : '🔒'}
