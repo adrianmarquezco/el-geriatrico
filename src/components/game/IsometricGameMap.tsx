@@ -295,9 +295,14 @@ export default function IsometricGameMap({
 
   async function handlePopupCare(residentId: string, action: 'feed'|'medicate'|'chat'|'shower'|'entertain') {
     if (!onCare) return
+    // Show JR going to the resident
+    const center = getZoneCenter(residentId)
+    if (center) { setJrPos(center); setJrVisible(true); setTimeout(() => setJrVisible(false), 2200) }
     setCaringAction(`${residentId}:${action}`)
     await onCare(residentId, action)
     setCaringAction(null)
+    // Auto-close popup after care so the user sees the result on the map
+    setTimeout(() => setPopupResident(null), 450)
   }
 
   const brokenRoom = rooms.find(r=>r.broken)
@@ -510,11 +515,27 @@ export default function IsometricGameMap({
                   </div>
                 )}
 
+                {/* ── Activity hint (single-resident rooms only) ── */}
+                {zoneResidentIds.length === 1 && (() => {
+                  const res = residents.find(x => x.id === zoneResidentIds[0])
+                  return res?.activity && res.activity !== 'hospitalizado — esperando traslado' ? (
+                    <p className="shrink-0 text-[8px] text-slate-600 italic px-3 pb-1 truncate text-center leading-none">{res.activity}</p>
+                  ) : null
+                })()}
+
                 {/* ── Happiness bottom bar ── */}
                 {zoneResidentIds.length > 0 && (
-                  <div className="shrink-0 h-1.5 rounded-b-lg overflow-hidden" style={{background:'rgba(0,0,0,0.4)'}}>
+                  <div className="shrink-0 h-1.5 rounded-b-lg overflow-hidden relative" style={{background:'rgba(0,0,0,0.4)'}}>
                     <div className="h-full rounded-b-lg transition-all duration-1000" style={{width:`${avgHappiness}%`,background:happCol,opacity:0.9}} />
+                    {avgHappiness >= 75 && (
+                      <div className="absolute inset-0 rounded-b-lg" style={{background:'linear-gradient(90deg,transparent,rgba(34,197,94,0.35),transparent)',animation:'shimmer 2s ease-in-out infinite'}} />
+                    )}
                   </div>
+                )}
+
+                {/* ✨ Happy room sparkle */}
+                {avgHappiness >= 78 && zoneResidentIds.length > 0 && (
+                  <div className="absolute top-2 right-2 text-sm pointer-events-none anim-sparkle z-10" style={{opacity:0.75}}>✨</div>
                 )}
               </div>
             )
@@ -671,6 +692,8 @@ function StatsBar({residence,events,residents,dayLabel}:{residence:Residence;eve
   const streak=residence.streak_days??0
   const avgColor=avg>=60?'#22c55e':avg>=35?'#f97316':'#ef4444'
   const urgColor=events.length===0?'#22c55e':critical>0?'#ef4444':'#fbbf24'
+  const xpForNext = residence.level * 200
+  const xpPct = Math.min(100, Math.round((residence.jr_experience % xpForNext) / xpForNext * 100))
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{background:'rgba(9,11,20,0.95)',border:'1px solid rgba(255,255,255,0.07)'}}>
@@ -680,9 +703,14 @@ function StatsBar({residence,events,residents,dayLabel}:{residence:Residence;eve
           <p className="text-green-400 font-black text-sm leading-tight">{residence.money>=1000?`${(residence.money/1000).toFixed(1)}k€`:`${residence.money}€`}</p>
         </div>
         <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
-        <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">
-          <p className="text-[10px] text-slate-600 leading-none">JR</p>
-          <p className="text-amber-400 font-black text-sm leading-tight">Nv.{residence.level}</p>
+        <div className="flex-1 flex flex-col items-center justify-center py-2 gap-0.5">
+          <p className="text-[10px] text-slate-600 leading-none">JR Nv.{residence.level}</p>
+          <div className="w-full px-2">
+            <div className="h-1.5 rounded-full w-full" style={{background:'rgba(255,255,255,0.08)'}}>
+              <div className="h-full rounded-full transition-all duration-700" style={{width:`${xpPct}%`,background:'linear-gradient(90deg,#f59e0b,#fbbf24)'}} />
+            </div>
+          </div>
+          <p className="text-amber-500 font-bold text-[9px] leading-none">{xpPct}% → Nv.{residence.level+1}</p>
         </div>
         <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
         <div className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5">

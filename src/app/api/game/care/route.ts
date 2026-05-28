@@ -31,9 +31,23 @@ export async function POST(request: Request) {
     .from('residents').select('*').eq('id', residentId).eq('residence_id', residence.id).single()
   if (!resident) return NextResponse.json({ error: 'Resident not found' }, { status: 404 })
 
-  const current = (resident as Record<string, number>)[cfg.field] ?? 50
+  const r = resident as Record<string, number>
+  const newFieldVal = Math.min(100, (r[cfg.field] ?? 50) + cfg.boost)
   const updates: Record<string, unknown> = {}
-  updates[cfg.field] = Math.min(100, current + cfg.boost)
+  updates[cfg.field] = newFieldVal
+
+  // Recalculate happiness immediately so the UI updates without waiting for tick
+  const needs = {
+    hunger:        cfg.field === 'hunger'        ? newFieldVal : (r.hunger        ?? 50),
+    hygiene:       cfg.field === 'hygiene'       ? newFieldVal : (r.hygiene       ?? 50),
+    medication:    cfg.field === 'medication'    ? newFieldVal : (r.medication    ?? 50),
+    entertainment: cfg.field === 'entertainment' ? newFieldVal : (r.entertainment ?? 50),
+    companionship: cfg.field === 'companionship' ? newFieldVal : (r.companionship ?? 50),
+  }
+  const baseHappiness = Math.round(
+    (needs.hunger + needs.hygiene + needs.medication + needs.entertainment + needs.companionship) / 5
+  )
+  updates.happiness = Math.min(100, Math.max(0, baseHappiness))
 
   await Promise.all([
     supabase.from('residents').update(updates).eq('id', residentId),
@@ -44,5 +58,5 @@ export async function POST(request: Request) {
         : Promise.resolve(),
   ])
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, happiness: updates.happiness })
 }
