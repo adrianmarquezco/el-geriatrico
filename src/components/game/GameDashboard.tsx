@@ -314,6 +314,31 @@ export default function GameDashboard({
     if (reputationDelta < 0) addToast(`${reputationDelta} reputación ⭐`, 'warning')
   }, [fetchState, addToast, play])
 
+  const handleCollect = useCallback(async (value: number, type: 'money' | 'xp') => {
+    play('coin')
+    if (navigator.vibrate) navigator.vibrate(30)
+    addToast(type === 'money' ? `+${value}€ 💰` : `+${value} XP ⭐`, type === 'money' ? 'money' : 'xp')
+    fetch('/api/game/collect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value, type }),
+    }).then(() => fetchState())
+  }, [addToast, play, fetchState])
+
+  const handleCare = useCallback(async (residentId: string, action: 'feed' | 'medicate' | 'chat') => {
+    const res = await fetch('/api/game/care', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ residentId, action }),
+    })
+    const data = await res.json()
+    if (data.error) { addToast(data.error, 'warning'); return }
+    await fetchState()
+    const labels = { feed: '🍽️ Alimentado', medicate: '💊 Medicado', chat: '💬 Animado' }
+    addToast(labels[action], 'success')
+    play('tap')
+  }, [fetchState, addToast, play])
+
   const handleOnboardingComplete = useCallback(async () => {
     setShowOnboarding(false)
     await fetch('/api/game/onboarding-done', { method: 'POST' })
@@ -362,9 +387,17 @@ export default function GameDashboard({
             onOpenMiniGame={handleOpenMiniGame}
             onFamilyVisit={handleFamilyVisit}
             onInspection={handleInspection}
+            onCollect={handleCollect}
           />
         )}
-        {tab === 'residentes' && <ResidentsPanel residents={residents} />}
+        {tab === 'residentes' && (
+          <ResidentsPanel
+            residents={residents}
+            money={residence.money}
+            jrEnergy={residence.jr_energy}
+            onCare={handleCare}
+          />
+        )}
         {tab === 'urgencias'  && <EventsPanel events={events} onResolve={handleResolve} />}
         {tab === 'obras'      && <RoomsPanel rooms={rooms} money={residence.money} onBuild={handleBuild} onUpgrade={handleUpgrade} />}
         {tab === 'personal'   && <StaffPanel staff={staff} money={residence.money} onHire={handleHire} onFire={handleFire} />}

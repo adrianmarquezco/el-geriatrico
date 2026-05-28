@@ -4,13 +4,17 @@
 
 @layer base {
   body {
-    @apply bg-amber-950 text-amber-50;
+    background: #07080e;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
+/* ═══════════════ ANIMATIONS ═══════════════ */
+
 @keyframes idle-float {
   0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-4px); }
+  50%       { transform: translateY(-5px); }
 }
 .animate-idle { animation: idle-float 2.5s ease-in-out infinite; }
 
@@ -22,47 +26,143 @@
 
 @keyframes event-pulse {
   0%, 100% { transform: scale(1);    opacity: 1;   }
-  50%       { transform: scale(1.2); opacity: 0.85; }
+  50%       { transform: scale(1.3); opacity: 0.85; }
 }
-.animate-event { animation: event-pulse 1.2s ease-in-out infinite; }
+.animate-event { animation: event-pulse 0.9s ease-in-out infinite; }
 
 @keyframes walk {
   0%   { transform: translateX(0); }
-  25%  { transform: translateX(3px) rotate(3deg); }
-  75%  { transform: translateX(-3px) rotate(-3deg); }
+  25%  { transform: translateX(3px) rotate(4deg); }
+  75%  { transform: translateX(-3px) rotate(-4deg); }
   100% { transform: translateX(0); }
 }
-.animate-walk { animation: walk 0.6s ease-in-out infinite; }
+.animate-walk { animation: walk 0.5s ease-in-out infinite; }
 
 @keyframes shake {
   0%,100% { transform: translateX(0); }
-  20%     { transform: translateX(-4px); }
-  40%     { transform: translateX(4px); }
-  60%     { transform: translateX(-4px); }
-  80%     { transform: translateX(4px); }
+  20%     { transform: translateX(-5px); }
+  40%     { transform: translateX(5px); }
+  60%     { transform: translateX(-5px); }
+  80%     { transform: translateX(5px); }
 }
-.animate-shake { animation: shake 0.5s ease-in-out; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
 
 @keyframes bounce-in {
-  0%   { opacity: 0; transform: translateY(-12px) scale(0.95); }
-  60%  { opacity: 1; transform: translateY(4px) scale(1.02); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateY(-14px) scale(0.9); }
+  60%  { opacity: 1; transform: translateY(4px)  scale(1.04); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
 }
-.animate-bounce-in {
-  animation: bounce-in 0.3s ease-out forwards;
+.animate-bounce-in { animation: bounce-in 0.28s ease-out forwards; }
+
+/* Collectible bobbing */
+@keyframes collectible-bob {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-5deg); }
+  50%       { transform: translateY(-8px) scale(1.15) rotate(5deg); }
+}
+.animate-collectible { animation: collectible-bob 0.75s ease-in-out infinite; }
+
+/* Collect burst (number flying up) */
+@keyframes collect-fly {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  60%  { opacity: 1; transform: translateY(-36px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-56px) scale(0.8); }
+}
+.animate-collect-fly { animation: collect-fly 1.2s ease-out forwards; }
+
+/* Stat pop when value changes */
+@keyframes stat-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.35); }
+  70%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+.animate-stat-pop { animation: stat-pop 0.32s ease-out forwards; }
+
+/* Glow ring for collectibles */
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50%       { box-shadow: 0 0 0 6px transparent; }
 }
 
+/* Need bar fill */
+@keyframes bar-fill {
+  from { width: 0%; }
+}
+
+/* Slide up for toasts/panels */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slide-up 0.25s ease-out forwards; }
+
+/* Spin once for level up */
+@keyframes spin-once {
+  from { transform: rotate(0deg) scale(0.8); opacity: 0; }
+  60%  { transform: rotate(380deg) scale(1.1); opacity: 1; }
+  100% { transform: rotate(360deg) scale(1); opacity: 1; }
+}
+.animate-spin-once { animation: spin-once 0.6s ease-out forwards; }
+
+/* Shimmer for locked items */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* ═══════════════ COMPONENTS ═══════════════ */
+
 @layer components {
+
+  /* Base card — glass-morphism dark */
   .card {
-    @apply bg-amber-900/40 border border-amber-800/50 rounded-2xl p-4;
+    @apply rounded-2xl p-4;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
   }
+
+  /* Color variants */
+  .card-gold   { background: rgba(251,191, 36,0.08); border-color: rgba(251,191, 36,0.28); }
+  .card-green  { background: rgba( 34,197, 94,0.08); border-color: rgba( 34,197, 94,0.28); }
+  .card-red    { background: rgba(239, 68, 68,0.08); border-color: rgba(239, 68, 68,0.28); }
+  .card-purple { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.28); }
+  .card-blue   { background: rgba( 96,165,250,0.08); border-color: rgba( 96,165,250,0.28); }
+
+  /* Primary CTA — gold gradient */
   .btn-primary {
-    @apply bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-amber-950 font-bold py-2 px-4 rounded-xl transition-colors;
+    @apply font-bold py-2.5 px-4 rounded-xl transition-all active:scale-95 select-none;
+    background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+    color: #030303;
+    box-shadow: 0 4px 18px rgba(245,158,11,0.38);
   }
+
+  /* Secondary — ghost */
   .btn-secondary {
-    @apply bg-amber-900 hover:bg-amber-800 border border-amber-700 text-amber-100 font-medium py-2 px-4 rounded-xl transition-colors;
+    @apply font-medium py-2 px-4 rounded-xl transition-all active:scale-95 select-none;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #cbd5e1;
   }
-  .badge {
-    @apply text-xs font-semibold px-2 py-0.5 rounded-full;
+
+  .badge { @apply text-xs font-semibold px-2 py-0.5 rounded-full; }
+
+  /* Pill stat chip inside maps / panels */
+  .stat-chip {
+    @apply rounded-xl py-2 px-3 text-center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
   }
+
+  /* Care action button (feed/meds/chat) */
+  .btn-care {
+    @apply flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 select-none;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
 }
