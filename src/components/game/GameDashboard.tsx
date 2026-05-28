@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Residence, Resident, GameEvent, Room, Toast, StaffMember, DailyMission, Story } from '@/lib/types'
+import { Residence, Resident, GameEvent, Room, Toast, StaffMember, DailyMission, Story, Achievement } from '@/lib/types'
 import TopBar from './TopBar'
-import GameMap from './GameMap'
+import IsometricGameMap from './IsometricGameMap'
 import ResidentsPanel from './ResidentsPanel'
 import EventsPanel from './EventsPanel'
 import RoomsPanel from './RoomsPanel'
@@ -11,12 +11,16 @@ import StaffPanel from './StaffPanel'
 import StoriesPanel from './StoriesPanel'
 import MissionsWidget from './MissionsWidget'
 import MiniGameModal from './MiniGameModal'
-import MorningBriefing from './MorningBriefing'
 import FamilyVisitDialog from './FamilyVisitDialog'
+import InspectionDialog from './InspectionDialog'
+import NewspaperBriefing from './NewspaperBriefing'
+import OnboardingFlow from './OnboardingFlow'
+import AchievementsPanel from './AchievementsPanel'
+import UnlockTree from './UnlockTree'
 import ToastContainer from './Toast'
 import { useGameSounds } from '@/hooks/useGameSounds'
 
-type Tab = 'mapa' | 'residentes' | 'urgencias' | 'obras' | 'personal' | 'diario'
+type Tab = 'mapa' | 'residentes' | 'urgencias' | 'obras' | 'personal' | 'logros'
 
 interface Props {
   residence: Residence
@@ -26,6 +30,7 @@ interface Props {
   staff: StaffMember[]
   missions: DailyMission[]
   stories: Story[]
+  achievements: Achievement[]
 }
 
 const SEASONAL_BANNER: Record<string, { emoji: string; label: string; color: string }> = {
@@ -36,7 +41,8 @@ const SEASONAL_BANNER: Record<string, { emoji: string; label: string; color: str
 
 export default function GameDashboard({
   residence: init, residents: initR, events: initE,
-  rooms: initRooms, staff: initStaff, missions: initMissions, stories: initStories
+  rooms: initRooms, staff: initStaff, missions: initMissions,
+  stories: initStories, achievements: initAch,
 }: Props) {
   const [residence, setResidence] = useState<Residence>(init)
   const [residents, setResidents] = useState<Resident[]>(initR)
@@ -45,22 +51,33 @@ export default function GameDashboard({
   const [staff, setStaff] = useState<StaffMember[]>(initStaff)
   const [missions, setMissions] = useState<DailyMission[]>(initMissions)
   const [stories, setStories] = useState<Story[]>(initStories)
+  const [achievements, setAchievements] = useState<Achievement[]>(initAch)
   const [tab, setTab] = useState<Tab>('mapa')
   const [toasts, setToasts] = useState<Toast[]>([])
   const [seasonalBanner, setSeasonalBanner] = useState<string | null>(null)
   const [miniGameEvent, setMiniGameEvent] = useState<{ event: GameEvent; resident: Resident } | null>(null)
   const [familyVisitData, setFamilyVisitData] = useState<{ event: GameEvent; resident: Resident } | null>(null)
+  const [inspectionEvent, setInspectionEvent] = useState<GameEvent | null>(null)
   const [morningBriefing, setMorningBriefing] = useState<Residence['overnight_summary'] | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const prevStoriesCount = useRef(initStories.length)
   const { play, toggle: toggleSound } = useGameSounds()
   const supabase = createClient()
 
+  // Show newspaper briefing on load if overnight summary exists
   useEffect(() => {
     const s = init.overnight_summary
     if (s && typeof s.income === 'number') {
       setMorningBriefing(s)
     }
   }, [])
+
+  // Show onboarding for new players (after briefing closes)
+  useEffect(() => {
+    if (!init.onboarding_done && !morningBriefing) {
+      setShowOnboarding(true)
+    }
+  }, [init.onboarding_done])
 
   const addToast = useCallback((message: string, type: Toast['type']) => {
     const id = Date.now() + Math.random()
@@ -69,14 +86,16 @@ export default function GameDashboard({
   }, [])
 
   const fetchState = useCallback(async () => {
-    const [{ data: res }, { data: res2 }, { data: ev }, { data: ro }, { data: st }, { data: ms }, { data: str }] = await Promise.all([
+    const today = new Date().toISOString().split('T')[0]
+    const [{ data: res }, { data: res2 }, { data: ev }, { data: ro }, { data: st }, { data: ms }, { data: str }, { data: ach }] = await Promise.all([
       supabase.from('residences').select('*').eq('id', init.id).single(),
       supabase.from('residents').select('*').eq('residence_id', init.id).order('created_at'),
       supabase.from('events').select('*, residents(name)').eq('residence_id', init.id).is('resolved_at', null).order('created_at'),
       supabase.from('rooms').select('*').eq('residence_id', init.id),
       supabase.from('staff').select('*').eq('residence_id', init.id),
-      supabase.from('daily_missions').select('*').eq('residence_id', init.id).eq('mission_date', new Date().toISOString().split('T')[0]),
+      supabase.from('daily_missions').select('*').eq('residence_id', init.id).eq('mission_date', today),
       supabase.from('stories').select('*').eq('residence_id', init.id).order('chapter'),
+      supabase.from('achievements').select('*').eq('residence_id', init.id),
     ])
     if (res)  setResidence(res)
     if (res2) setResidents(res2)
@@ -84,6 +103,7 @@ export default function GameDashboard({
     if (ro)   setRooms(ro)
     if (st)   setStaff(st)
     if (ms)   setMissions(ms)
+    if (ach)  setAchievements(ach)
     if (str) {
       if (str.length > prevStoriesCount.current) {
         const newest = str[str.length - 1]
@@ -116,7 +136,16 @@ export default function GameDashboard({
     if (data.is_new_day && data.overnight_summary && typeof data.overnight_summary.income === 'number') {
       setMorningBriefing(data.overnight_summary)
     }
-  }, [fetchState, addToast, play])
+    if (data.new_achievements && data.new_achievements.length > 0) {
+      data.new_achievements.forEach((type: string) => {
+        addToast(`🏆 ¡Logro desbloqueado!`, 'success')
+        play('levelup')
+      })
+    }
+    if (data.streak_days > (residence.streak_days ?? 0) && data.streak_days >= 3) {
+      addToast(`🔥 ¡${data.streak_days} días sin crisis!`, 'success')
+    }
+  }, [fetchState, addToast, play, residence.streak_days])
 
   useEffect(() => {
     runTick()
@@ -266,9 +295,41 @@ export default function GameDashboard({
     if (data.xp) { addToast(`+${data.xp} XP 🧠`, 'xp') }
   }, [fetchState, addToast, play, residents, events])
 
+  const handleInspection = useCallback((event: GameEvent) => {
+    setInspectionEvent(event)
+  }, [])
+
+  const handleInspectionResolve = useCallback(async (eventId: string, reputationDelta: number, moneyBonus: number) => {
+    setInspectionEvent(null)
+    play(reputationDelta > 0 ? 'success' : reputationDelta < 0 ? 'alarm' : 'tap')
+    const res = await fetch('/api/game/inspection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventId, reputationDelta, moneyBonus }),
+    })
+    await res.json()
+    await fetchState()
+    if (moneyBonus > 0) addToast(`+${moneyBonus}€ subvención 🏛️`, 'money')
+    if (reputationDelta > 0) addToast(`+${reputationDelta} reputación ⭐`, 'success')
+    if (reputationDelta < 0) addToast(`${reputationDelta} reputación ⭐`, 'warning')
+  }, [fetchState, addToast, play])
+
+  const handleOnboardingComplete = useCallback(async () => {
+    setShowOnboarding(false)
+    await fetch('/api/game/onboarding-done', { method: 'POST' })
+  }, [])
+
   const urgentCount = events.length
   const pendingMissions = missions.filter(m => m.completed_at && !m.claimed_at).length
-  const newStories = stories.length > 0 ? 0 : 0 // just for badge logic
+
+  const TABS = [
+    { id: 'mapa',       label: 'Residencia', icon: '🏠' },
+    { id: 'residentes', label: 'Residentes',  icon: '👴' },
+    { id: 'urgencias',  label: 'Urgencias',  icon: '🚨', badge: urgentCount },
+    { id: 'obras',      label: 'Obras',      icon: '🔨' },
+    { id: 'personal',   label: 'Personal',   icon: '👩‍⚕️' },
+    { id: 'logros',     label: 'Logros',     icon: '🏆', badge: pendingMissions > 0 ? pendingMissions : undefined },
+  ] as Array<{ id: Tab; label: string; icon: string; badge?: number }>
 
   return (
     <div className="min-h-screen flex flex-col max-w-md mx-auto">
@@ -284,19 +345,39 @@ export default function GameDashboard({
       <TopBar residence={residence} onSoundToggle={toggleSound} />
 
       <main className="flex-1 px-3 pb-24 pt-3 flex flex-col gap-3">
-        {/* Missions widget always visible on map and urgencias tabs */}
+        {/* Missions widget on map and urgencias */}
         {(tab === 'mapa' || tab === 'urgencias') && missions.length > 0 && (
           <MissionsWidget missions={missions} onClaim={handleClaimMission} />
         )}
 
-        {tab === 'mapa'       && <GameMap residence={residence} residents={residents} events={events} rooms={rooms} onResolve={handleResolve} onGoToBuild={() => setTab('obras')} onRepairRoom={handleRepairRoom} onOpenMiniGame={handleOpenMiniGame} onFamilyVisit={handleFamilyVisit} />}
+        {tab === 'mapa' && (
+          <IsometricGameMap
+            residence={residence}
+            residents={residents}
+            events={events}
+            rooms={rooms}
+            onResolve={handleResolve}
+            onGoToBuild={() => setTab('obras')}
+            onRepairRoom={handleRepairRoom}
+            onOpenMiniGame={handleOpenMiniGame}
+            onFamilyVisit={handleFamilyVisit}
+            onInspection={handleInspection}
+          />
+        )}
         {tab === 'residentes' && <ResidentsPanel residents={residents} />}
         {tab === 'urgencias'  && <EventsPanel events={events} onResolve={handleResolve} />}
         {tab === 'obras'      && <RoomsPanel rooms={rooms} money={residence.money} onBuild={handleBuild} onUpgrade={handleUpgrade} />}
         {tab === 'personal'   && <StaffPanel staff={staff} money={residence.money} onHire={handleHire} onFire={handleFire} />}
-        {tab === 'diario'     && <StoriesPanel stories={stories} />}
+        {tab === 'logros'     && (
+          <div className="flex flex-col gap-3">
+            <UnlockTree residence={residence} />
+            <div className="h-px bg-amber-900/40" />
+            <AchievementsPanel achievements={achievements} residence={residence} />
+          </div>
+        )}
       </main>
 
+      {/* Modals */}
       {miniGameEvent && (
         <MiniGameModal
           event={miniGameEvent.event}
@@ -318,23 +399,38 @@ export default function GameDashboard({
         />
       )}
 
-      {morningBriefing && (
-        <MorningBriefing
-          summary={morningBriefing}
-          residenceName={residence.name}
-          onClose={() => setMorningBriefing(null)}
+      {inspectionEvent && (
+        <InspectionDialog
+          event={inspectionEvent}
+          residents={residents}
+          onResolve={handleInspectionResolve}
+          onClose={() => setInspectionEvent(null)}
+          play={play}
         />
       )}
 
+      {morningBriefing && (
+        <NewspaperBriefing
+          summary={morningBriefing}
+          residenceName={residence.name}
+          streakDays={residence.streak_days ?? 0}
+          onClose={() => {
+            setMorningBriefing(null)
+            if (!init.onboarding_done) setShowOnboarding(true)
+          }}
+        />
+      )}
+
+      {showOnboarding && !morningBriefing && (
+        <OnboardingFlow
+          residenceName={residence.name}
+          onComplete={handleOnboardingComplete}
+        />
+      )}
+
+      {/* Bottom nav */}
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-amber-950/95 backdrop-blur border-t border-amber-800/50 flex">
-        {([
-          { id: 'mapa',       label: 'Residencia', icon: '🏠' },
-          { id: 'residentes', label: 'Residentes',  icon: '👴' },
-          { id: 'urgencias',  label: 'Urgencias',  icon: '🚨', badge: urgentCount },
-          { id: 'obras',      label: 'Obras',      icon: '🔨' },
-          { id: 'personal',   label: 'Personal',   icon: '👩‍⚕️' },
-          { id: 'diario',     label: 'Diario',     icon: '📖', badge: pendingMissions > 0 ? pendingMissions : undefined },
-        ] as Array<{ id: Tab; label: string; icon: string; badge?: number }>).map(t => (
+        {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}

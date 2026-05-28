@@ -12,6 +12,9 @@ export interface Residence {
   seasonal_event: string | null
   overnight_summary: OvernightSummary | null
   last_morning_check: string
+  streak_days: number
+  best_streak: number
+  onboarding_done: boolean
   created_at: string
 }
 
@@ -114,5 +117,12 @@ export interface Story {
   title: string
   content: string
   trigger_type: string
+  unlocked_at: string
+}
+
+export interface Achievement {
+  id: string
+  residence_id: string
+  type: string
   unlocked_at: string
 }

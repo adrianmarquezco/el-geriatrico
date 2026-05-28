@@ -36,8 +36,14 @@ export default function TopBar({ residence, onSoundToggle }: Props) {
             <span className="text-amber-600 text-[10px]">JR Nv.{residence.level}</span>
             <span className="text-amber-800 text-[10px]">·</span>
             <span className="text-amber-700 text-[10px]">⭐{residence.reputation}</span>
-            <span className="text-amber-800 text-[10px]">·</span>
-            <span className="text-amber-700 text-[10px]">✅{residence.total_events_resolved || 0}</span>
+            {(residence.streak_days ?? 0) > 0 && (
+              <>
+                <span className="text-amber-800 text-[10px]">·</span>
+                <span className={`text-[10px] font-bold ${(residence.streak_days ?? 0) >= 7 ? 'text-yellow-400' : (residence.streak_days ?? 0) >= 3 ? 'text-orange-400' : 'text-amber-600'}`}>
+                  🔥{residence.streak_days}d
+                </span>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
