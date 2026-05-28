@@ -10,25 +10,15 @@
   }
 }
 
-/* ═══════════════ ANIMATIONS ═══════════════ */
+/* ══════════════════════════════
+   CORE GAME ANIMATIONS
+══════════════════════════════ */
 
 @keyframes idle-float {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-5px); }
 }
 .animate-idle { animation: idle-float 2.5s ease-in-out infinite; }
-
-@keyframes idle-float-slow {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-3px); }
-}
-.animate-idle-slow { animation: idle-float-slow 3.5s ease-in-out infinite; }
-
-@keyframes event-pulse {
-  0%, 100% { transform: scale(1);    opacity: 1;   }
-  50%       { transform: scale(1.3); opacity: 0.85; }
-}
-.animate-event { animation: event-pulse 0.9s ease-in-out infinite; }
 
 @keyframes walk {
   0%   { transform: translateX(0); }
@@ -37,6 +27,12 @@
   100% { transform: translateX(0); }
 }
 .animate-walk { animation: walk 0.5s ease-in-out infinite; }
+
+@keyframes event-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.4); filter: brightness(1.3); }
+}
+.animate-event { animation: event-pulse 0.85s ease-in-out infinite; }
 
 @keyframes shake {
   0%,100% { transform: translateX(0); }
@@ -48,100 +44,158 @@
 .animate-shake { animation: shake 0.4s ease-in-out; }
 
 @keyframes bounce-in {
-  0%   { opacity: 0; transform: translateY(-14px) scale(0.9); }
-  60%  { opacity: 1; transform: translateY(4px)  scale(1.04); }
-  100% { opacity: 1; transform: translateY(0)    scale(1); }
+  0%   { opacity: 0; transform: translateY(-16px) scale(0.88); }
+  60%  { opacity: 1; transform: translateY(5px)   scale(1.05); }
+  100% { opacity: 1; transform: translateY(0)     scale(1); }
 }
-.animate-bounce-in { animation: bounce-in 0.28s ease-out forwards; }
+.animate-bounce-in { animation: bounce-in 0.28s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 
-/* Collectible bobbing */
-@keyframes collectible-bob {
-  0%, 100% { transform: translateY(0) scale(1) rotate(-5deg); }
-  50%       { transform: translateY(-8px) scale(1.15) rotate(5deg); }
-}
-.animate-collectible { animation: collectible-bob 0.75s ease-in-out infinite; }
-
-/* Collect burst (number flying up) */
-@keyframes collect-fly {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  60%  { opacity: 1; transform: translateY(-36px) scale(1.2); }
-  100% { opacity: 0; transform: translateY(-56px) scale(0.8); }
-}
-.animate-collect-fly { animation: collect-fly 1.2s ease-out forwards; }
-
-/* Stat pop when value changes */
-@keyframes stat-pop {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.35); }
-  70%  { transform: scale(0.93); }
-  100% { transform: scale(1); }
-}
-.animate-stat-pop { animation: stat-pop 0.32s ease-out forwards; }
-
-/* Glow ring for collectibles */
-@keyframes glow-ring {
-  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
-  50%       { box-shadow: 0 0 0 6px transparent; }
-}
-
-/* Need bar fill */
-@keyframes bar-fill {
-  from { width: 0%; }
-}
-
-/* Slide up for toasts/panels */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-slide-up { animation: slide-up 0.25s ease-out forwards; }
+.animate-slide-up { animation: slide-up 0.22s ease-out forwards; }
 
-/* Spin once for level up */
 @keyframes spin-once {
-  from { transform: rotate(0deg) scale(0.8); opacity: 0; }
-  60%  { transform: rotate(380deg) scale(1.1); opacity: 1; }
+  from { transform: rotate(0deg) scale(0.7); opacity: 0; }
+  60%  { transform: rotate(390deg) scale(1.1); opacity: 1; }
   100% { transform: rotate(360deg) scale(1); opacity: 1; }
 }
-.animate-spin-once { animation: spin-once 0.6s ease-out forwards; }
+.animate-spin-once { animation: spin-once 0.55s ease-out forwards; }
 
-/* Shimmer for locked items */
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
+/* Collectibles */
+@keyframes collectible-bob {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-6deg); }
+  50%       { transform: translateY(-9px) scale(1.18) rotate(6deg); }
 }
-.animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2.5s linear infinite;
+.animate-collectible { animation: collectible-bob 0.72s ease-in-out infinite; }
+
+@keyframes collect-fly {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  60%  { opacity: 1; transform: translateY(-38px) scale(1.25); }
+  100% { opacity: 0; transform: translateY(-58px) scale(0.7); }
+}
+.animate-collect-fly { animation: collect-fly 1.1s ease-out forwards; }
+
+/* Stat pop */
+@keyframes stat-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.4); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.animate-stat-pop { animation: stat-pop 0.3s ease-out forwards; }
+
+/* ══════════════════════════════
+   ROOM AMBIENT ANIMATIONS
+══════════════════════════════ */
+
+@keyframes steam-rise {
+  0%   { transform: translateY(0) scale(1); opacity: 0.9; }
+  70%  { transform: translateY(-18px) scale(0.75); opacity: 0.35; }
+  100% { transform: translateY(-28px) scale(0.55); opacity: 0; }
+}
+.anim-steam { animation: steam-rise 2.4s ease-out infinite; }
+.anim-steam-delay { animation: steam-rise 2.4s ease-out 1s infinite; }
+
+@keyframes garden-sway {
+  0%, 100% { transform: rotate(-10deg); transform-origin: bottom center; }
+  50%       { transform: rotate(10deg);  transform-origin: bottom center; }
+}
+.anim-sway       { animation: garden-sway 2.6s ease-in-out infinite; }
+.anim-sway-delay { animation: garden-sway 2.6s ease-in-out 0.9s infinite; }
+.anim-sway-slow  { animation: garden-sway 3.8s ease-in-out 0.4s infinite; }
+
+@keyframes candle-flicker {
+  0%, 100% { opacity: 0.95; transform: scale(1) rotate(-1deg); }
+  25%       { opacity: 0.6;  transform: scale(0.9) rotate(3deg); }
+  50%       { opacity: 1;    transform: scale(1.1) rotate(-3deg); }
+  75%       { opacity: 0.75; transform: scale(0.95) rotate(2deg); }
+}
+.anim-flicker       { animation: candle-flicker 1.5s ease-in-out infinite; }
+.anim-flicker-delay { animation: candle-flicker 1.5s ease-in-out 0.5s infinite; }
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%       { transform: scale(1.35); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.2); }
+  56%       { transform: scale(1); }
+}
+.anim-heartbeat { animation: heartbeat 1.3s ease-in-out infinite; }
+
+@keyframes breathe-scale {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50%       { transform: scale(1.22); opacity: 1; }
+}
+.anim-breathe { animation: breathe-scale 3.5s ease-in-out infinite; }
+
+@keyframes zzz-float {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-22px) translateX(10px) scale(0.4); opacity: 0; }
+}
+.anim-zzz       { animation: zzz-float 3.2s ease-out infinite; }
+.anim-zzz-delay { animation: zzz-float 3.2s ease-out 1.4s infinite; }
+
+@keyframes tv-screen {
+  0%, 85%, 100% { opacity: 0.55; }
+  86%, 88%      { opacity: 0.12; }
+  87%           { opacity: 0.85; }
+  89%, 91%      { opacity: 0.45; }
+  90%           { opacity: 0.9; }
+}
+.anim-tv { animation: tv-screen 5s ease-in-out infinite; }
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50%       { transform: translateY(-7px) rotate(4deg); }
+}
+.anim-float       { animation: float-gentle 3.8s ease-in-out infinite; }
+.anim-float-delay { animation: float-gentle 3.8s ease-in-out 1.2s infinite; }
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.anim-spin-slow { animation: spin-slow 10s linear infinite; }
+
+@keyframes urgency-bar {
+  from { width: 100%; }
+  to   { width: 0%; }
 }
 
-/* ═══════════════ COMPONENTS ═══════════════ */
+/* Popup entrance */
+@keyframes popup-in {
+  0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-popup-in { animation: popup-in 0.2s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* ══════════════════════════════
+   COMPONENTS
+══════════════════════════════ */
 
 @layer components {
 
-  /* Base card — glass-morphism dark */
   .card {
     @apply rounded-2xl p-4;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.09);
   }
 
-  /* Color variants */
-  .card-gold   { background: rgba(251,191, 36,0.08); border-color: rgba(251,191, 36,0.28); }
-  .card-green  { background: rgba( 34,197, 94,0.08); border-color: rgba( 34,197, 94,0.28); }
-  .card-red    { background: rgba(239, 68, 68,0.08); border-color: rgba(239, 68, 68,0.28); }
-  .card-purple { background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.28); }
-  .card-blue   { background: rgba( 96,165,250,0.08); border-color: rgba( 96,165,250,0.28); }
+  .card-gold   { background: rgba(251,191, 36, 0.08); border-color: rgba(251,191, 36, 0.28); }
+  .card-green  { background: rgba( 34,197, 94, 0.08); border-color: rgba( 34,197, 94, 0.28); }
+  .card-red    { background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.28); }
+  .card-purple { background: rgba(167,139,250, 0.08); border-color: rgba(167,139,250, 0.28); }
+  .card-blue   { background: rgba( 96,165,250, 0.08); border-color: rgba( 96,165,250, 0.28); }
 
-  /* Primary CTA — gold gradient */
   .btn-primary {
     @apply font-bold py-2.5 px-4 rounded-xl transition-all active:scale-95 select-none;
     background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
     color: #030303;
-    box-shadow: 0 4px 18px rgba(245,158,11,0.38);
+    box-shadow: 0 4px 18px rgba(245,158,11,0.35);
   }
 
-  /* Secondary — ghost */
   .btn-secondary {
     @apply font-medium py-2 px-4 rounded-xl transition-all active:scale-95 select-none;
     background: rgba(255,255,255,0.06);
@@ -151,18 +205,10 @@
 
   .badge { @apply text-xs font-semibold px-2 py-0.5 rounded-full; }
 
-  /* Pill stat chip inside maps / panels */
   .stat-chip {
     @apply rounded-xl py-2 px-3 text-center;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.07);
-  }
-
-  /* Care action button (feed/meds/chat) */
-  .btn-care {
-    @apply flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 select-none;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
   }
 
 }

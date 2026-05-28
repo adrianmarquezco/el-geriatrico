@@ -388,6 +388,7 @@ export default function GameDashboard({
             onFamilyVisit={handleFamilyVisit}
             onInspection={handleInspection}
             onCollect={handleCollect}
+            onCare={handleCare}
           />
         )}
         {tab === 'residentes' && (
@@ -462,12 +463,13 @@ export default function GameDashboard({
       )}
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-amber-950/95 backdrop-blur border-t border-amber-800/50 flex">
+      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex"
+        style={{ background: 'rgba(7,8,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
         {TABS.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 flex flex-col items-center py-2 gap-0 text-[10px] transition-colors relative ${tab === t.id ? 'text-amber-300' : 'text-amber-600'}`}
+            className={`flex-1 flex flex-col items-center py-2 gap-0 text-[10px] transition-colors relative ${tab === t.id ? 'text-amber-400' : 'text-slate-600'}`}
           >
             <span className="text-lg">{t.icon}</span>
             <span>{t.label}</span>
