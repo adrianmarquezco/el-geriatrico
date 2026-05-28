@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Resident, GameEvent, Room, Residence } from '@/lib/types'
 
-const ROOM_H = 168
+const ROOM_H = 176
 const CORRIDOR_H = 24
 
 /* ─── Room visual config ─── */
@@ -10,57 +10,56 @@ const ROOM_CFG: Record<string, {
   icon: string; label: string
   bg: string; border: string; text: string; glow: string
 }> = {
-  bedroom:       { icon: '🛏️', label: 'Habitación',   bg: 'linear-gradient(150deg,#0d1e3e 0%,#07101e 100%)', border: '#3b82f6', text: '#93c5fd', glow: '59,130,246'  },
-  tv_room:       { icon: '📺', label: 'Sala TV',       bg: 'linear-gradient(150deg,#1a0838 0%,#0c0420 100%)', border: '#a855f7', text: '#c4b5fd', glow: '168,85,247'  },
-  dining_room:   { icon: '🍽️', label: 'Comedor',       bg: 'linear-gradient(150deg,#2c1600 0%,#160b00 100%)', border: '#f59e0b', text: '#fcd34d', glow: '245,158,11'  },
-  garden:        { icon: '🌿', label: 'Jardín',        bg: 'linear-gradient(150deg,#092a0e 0%,#041008 100%)', border: '#22c55e', text: '#86efac', glow: '34,197,94'   },
-  infirmary:     { icon: '🏥', label: 'Enfermería',    bg: 'linear-gradient(150deg,#2a0606 0%,#160303 100%)', border: '#ef4444', text: '#fca5a5', glow: '239,68,68'   },
-  chapel:        { icon: '⛪', label: 'Capilla',       bg: 'linear-gradient(150deg,#261a00 0%,#130d00 100%)', border: '#d97706', text: '#fde68a', glow: '217,119,6'   },
-  barbershop:    { icon: '💈', label: 'Peluquería',    bg: 'linear-gradient(150deg,#280810 0%,#140408 100%)', border: '#ec4899', text: '#f9a8d4', glow: '236,72,153'  },
-  cards_room:    { icon: '🃏', label: 'Sala de cartas',bg: 'linear-gradient(150deg,#0a1630 0%,#060e1a 100%)', border: '#2563eb', text: '#93c5fd', glow: '37,99,235'   },
-  physiotherapy: { icon: '🤸', label: 'Fisioterapia',  bg: 'linear-gradient(150deg,#062020 0%,#030e0e 100%)', border: '#0d9488', text: '#5eead4', glow: '13,148,136'  },
+  bedroom:       { icon: '🛏️', label: 'Habitación',    bg: 'linear-gradient(150deg,#0d1e3e 0%,#07101e 100%)', border: '#3b82f6', text: '#93c5fd', glow: '59,130,246'  },
+  tv_room:       { icon: '📺', label: 'Sala TV',        bg: 'linear-gradient(150deg,#1a0838 0%,#0c0420 100%)', border: '#a855f7', text: '#c4b5fd', glow: '168,85,247'  },
+  dining_room:   { icon: '🍽️', label: 'Comedor',        bg: 'linear-gradient(150deg,#2c1600 0%,#160b00 100%)', border: '#f59e0b', text: '#fcd34d', glow: '245,158,11'  },
+  garden:        { icon: '🌿', label: 'Jardín',         bg: 'linear-gradient(150deg,#092a0e 0%,#041008 100%)', border: '#22c55e', text: '#86efac', glow: '34,197,94'   },
+  infirmary:     { icon: '🏥', label: 'Enfermería',     bg: 'linear-gradient(150deg,#2a0606 0%,#160303 100%)', border: '#ef4444', text: '#fca5a5', glow: '239,68,68'   },
+  chapel:        { icon: '⛪', label: 'Capilla',        bg: 'linear-gradient(150deg,#261a00 0%,#130d00 100%)', border: '#d97706', text: '#fde68a', glow: '217,119,6'   },
+  barbershop:    { icon: '💈', label: 'Peluquería',     bg: 'linear-gradient(150deg,#280810 0%,#140408 100%)', border: '#ec4899', text: '#f9a8d4', glow: '236,72,153'  },
+  cards_room:    { icon: '🃏', label: 'Sala de cartas', bg: 'linear-gradient(150deg,#0a1630 0%,#060e1a 100%)', border: '#2563eb', text: '#93c5fd', glow: '37,99,235'   },
+  physiotherapy: { icon: '🤸', label: 'Fisioterapia',   bg: 'linear-gradient(150deg,#062020 0%,#030e0e 100%)', border: '#0d9488', text: '#5eead4', glow: '13,148,136'  },
 }
 
 /* ─── Room ambient decorations ─── */
 const ROOM_AMBIENT: Record<string, { emoji: string; x: number; y: number; cls: string; size?: string }[]> = {
   bedroom:       [
-    { emoji: '💤', x: 72, y: 12, cls: 'anim-zzz', size: 'text-xs' },
-    { emoji: '💤', x: 55, y: 20, cls: 'anim-zzz-delay', size: 'text-[9px]' },
+    { emoji: '💤', x: 82, y: 14, cls: 'anim-zzz',       size: 'text-xs' },
+    { emoji: '💤', x: 68, y: 22, cls: 'anim-zzz-delay', size: 'text-[9px]' },
   ],
   tv_room:       [
-    { emoji: '📺', x: 45, y: 40, cls: 'anim-tv',   size: 'text-2xl' },
-    { emoji: '🔵', x: 45, y: 40, cls: 'anim-tv',   size: 'text-2xl opacity-30' },
+    { emoji: '📺', x: 50, y: 42, cls: 'anim-tv', size: 'text-2xl' },
   ],
   dining_room:   [
-    { emoji: '♨️', x: 40, y: 35, cls: 'anim-steam',       size: 'text-sm' },
-    { emoji: '♨️', x: 58, y: 28, cls: 'anim-steam-delay', size: 'text-xs' },
+    { emoji: '♨️', x: 38, y: 34, cls: 'anim-steam',       size: 'text-sm' },
+    { emoji: '♨️', x: 58, y: 26, cls: 'anim-steam-delay', size: 'text-xs' },
   ],
   garden:        [
-    { emoji: '🌸', x: 20, y: 55, cls: 'anim-sway',       size: 'text-lg' },
-    { emoji: '🌿', x: 45, y: 58, cls: 'anim-sway-slow',   size: 'text-base' },
-    { emoji: '🌺', x: 72, y: 52, cls: 'anim-sway-delay',  size: 'text-lg' },
-    { emoji: '☀️', x: 80, y: 12, cls: 'anim-breathe',     size: 'text-sm' },
+    { emoji: '🌸', x: 18, y: 55, cls: 'anim-sway',       size: 'text-lg' },
+    { emoji: '🌿', x: 50, y: 60, cls: 'anim-sway-slow',   size: 'text-base' },
+    { emoji: '🌺', x: 80, y: 52, cls: 'anim-sway-delay',  size: 'text-lg' },
+    { emoji: '☀️', x: 85, y: 12, cls: 'anim-breathe',     size: 'text-sm' },
   ],
   infirmary:     [
-    { emoji: '❤️', x: 70, y: 15, cls: 'anim-heartbeat', size: 'text-sm' },
-    { emoji: '➕', x: 50, y: 38, cls: 'anim-breathe',   size: 'text-2xl opacity-20' },
+    { emoji: '❤️', x: 78, y: 16, cls: 'anim-heartbeat', size: 'text-sm' },
+    { emoji: '➕', x: 50, y: 42, cls: 'anim-breathe',   size: 'text-2xl opacity-20' },
   ],
   chapel:        [
-    { emoji: '🕯️', x: 22, y: 52, cls: 'anim-flicker',       size: 'text-base' },
-    { emoji: '🕯️', x: 72, y: 52, cls: 'anim-flicker-delay',  size: 'text-base' },
+    { emoji: '🕯️', x: 18, y: 55, cls: 'anim-flicker',       size: 'text-base' },
+    { emoji: '🕯️', x: 78, y: 55, cls: 'anim-flicker-delay',  size: 'text-base' },
     { emoji: '✨', x: 50, y: 18, cls: 'anim-float',           size: 'text-sm' },
   ],
   barbershop:    [
-    { emoji: '💈', x: 50, y: 36, cls: 'anim-spin-slow', size: 'text-2xl' },
-    { emoji: '✨', x: 75, y: 20, cls: 'anim-float-delay', size: 'text-xs' },
+    { emoji: '💈', x: 50, y: 38, cls: 'anim-spin-slow',   size: 'text-2xl' },
+    { emoji: '✨', x: 80, y: 20, cls: 'anim-float-delay', size: 'text-xs' },
   ],
   cards_room:    [
-    { emoji: '🃏', x: 30, y: 42, cls: 'anim-float',       size: 'text-xl' },
-    { emoji: '🃏', x: 62, y: 46, cls: 'anim-float-delay', size: 'text-lg' },
+    { emoji: '🃏', x: 28, y: 44, cls: 'anim-float',       size: 'text-xl' },
+    { emoji: '🃏', x: 65, y: 48, cls: 'anim-float-delay', size: 'text-lg' },
   ],
   physiotherapy: [
-    { emoji: '💪', x: 65, y: 20, cls: 'anim-breathe', size: 'text-base' },
-    { emoji: '🏋️', x: 45, y: 38, cls: 'anim-float',   size: 'text-xl' },
+    { emoji: '💪', x: 72, y: 20, cls: 'anim-breathe', size: 'text-base' },
+    { emoji: '🏋️', x: 50, y: 40, cls: 'anim-float',   size: 'text-xl' },
   ],
 }
 
@@ -124,7 +123,6 @@ function buildZones(rooms: Room[]): Zone[] {
   let col=0, row=0
   others.forEach((type, idx) => {
     const isLast = idx === others.length - 1
-    // full-width: garden always, or lone room at end of row
     const full = type === 'garden' || (isLast && col === 0 && others.length > 0)
     if (full && col !== 0) { col=0; row++ }
     zones.push({ id:type, type, label: ROOM_CFG[type]?.label||type, icon: ROOM_CFG[type]?.icon||'🏠', col: full?2:col, row, isOther:true, cfg: ROOM_CFG[type]||ROOM_CFG.bedroom })
@@ -239,23 +237,11 @@ export default function IsometricGameMap({
     return map
   }, [events, residentZone])
 
-  function getResidentPx(rid: string): {x:number;y:number}|null {
+  // Get zone center for JR animation and popup positioning
+  function getZoneCenter(rid: string): {x:number;y:number}|null {
     const zone=residentZone[rid]; if (!zone) return null
     const px=zonePx(zone,bedroomRows,containerW)
-    const ids=zoneResidents[zone.id]||[]; const idx=ids.indexOf(rid); const count=ids.length
-    // 2-per-row grid: row 0 = top, row 1 = bottom
-    const perRow = 2
-    const col = idx % perRow
-    const row = Math.floor(idx / perRow)
-    const rowCount = Math.ceil(count / perRow)
-    // X: spread across half or full width depending on items in this row
-    const itemsInRow = Math.min(perRow, count - row * perRow)
-    const XCOLS: Record<number,number[]> = { 1:[0.5], 2:[0.27,0.73] }
-    const xFrac = (XCOLS[itemsInRow] ?? [0.27,0.73])[col]
-    // Y: place residents BELOW the room header (~46px from room top)
-    // ROOM_H=168, tile=162: header≈46px, events from bottom≈72px → middle≈46..90
-    const yOffset = rowCount === 1 ? 58 : row === 0 ? 48 : 98
-    return { x: px.x + px.w * xFrac - 17, y: px.y + yOffset }
+    return { x: px.x + px.w/2, y: px.y + px.h/2 }
   }
 
   // ─── Collectibles ───
@@ -264,7 +250,7 @@ export default function IsometricGameMap({
     const r = residents[Math.floor(Math.random()*residents.length)]
     const zone = residentZoneRef.current[r.id]; if (!zone) return
     const px = zonePx(zone, bedroomRowsRef.current, containerW)
-    const x = px.x + px.w*(0.25+Math.random()*0.5); const y = px.y + 14
+    const x = px.x + px.w*(0.25+Math.random()*0.5); const y = px.y + 16
     const rnd=Math.random(); const type=rnd<0.55?'coin':rnd<0.82?'heart':'star' as const
     const value=type==='coin'?40+Math.floor(Math.random()*60):type==='heart'?5:3
     const id=Date.now().toString()+Math.random()
@@ -293,8 +279,8 @@ export default function IsometricGameMap({
     const r=residents.find(x=>x.id===ev.resident_id)
     if (ev.type==='inspection'&&onInspection) { navigator.vibrate?.([60,30,60]); onInspection(ev); return }
     if (!r) return
-    const pos=getResidentPx(ev.resident_id)
-    if (pos) { setJrPos(pos); setJrVisible(true); setTimeout(()=>setJrVisible(false),2200) }
+    const center=getZoneCenter(ev.resident_id)
+    if (center) { setJrPos(center); setJrVisible(true); setTimeout(()=>setJrVisible(false),2200) }
     navigator.vibrate?.(ev.urgency==='critical'?[80,40,80,40,120]:[50,30,80])
     if (ev.type==='family_visit'&&onFamilyVisit) { onFamilyVisit(ev,r); return }
     if (['medication','fallen','hunger','tv_dispute'].includes(ev.type)&&onOpenMiniGame) { onOpenMiniGame(ev,r); return }
@@ -312,7 +298,8 @@ export default function IsometricGameMap({
   const brokenRoom = rooms.find(r=>r.broken)
   const COLL_EMOJI = { coin:'💰', heart:'💝', star:'⭐' }
   const popupResidentData = popupResident ? residents.find(r=>r.id===popupResident) : null
-  const popupPos = popupResident ? getResidentPx(popupResident) : null
+  const popupZone = popupResident ? residentZone[popupResident] : null
+  const popupZonePx = popupZone ? zonePx(popupZone, bedroomRows, containerW) : null
 
   if (rooms.length === 0) {
     return (
@@ -355,14 +342,13 @@ export default function IsometricGameMap({
           {/* Floor grid */}
           <div className="absolute inset-0 pointer-events-none" style={{backgroundImage:`linear-gradient(rgba(80,100,200,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(80,100,200,0.06) 1px,transparent 1px)`,backgroundSize:'38px 38px'}} />
 
-          {/* Room tiles */}
+          {/* ─── Room tiles with residents INSIDE ─── */}
           {zones.filter(z=>z.type!=='empty').map(zone => {
             const px=zonePx(zone,bedroomRows,containerW)
             const zEvs=eventsByZone[zone.id]||[]
             const hasCrit=zEvs.some(e=>e.urgency==='critical')
             const rd=rooms.find(r=>r.type===zone.type)
             const isBroken=rd?.broken&&zone.type==='tv_room'
-            // Residents in this zone with critical needs (< 20)
             const zoneResidentIds=zoneResidents[zone.id]||[]
             const hasNeedCrit=zoneResidentIds.some(rid=>{
               const r=residents.find(x=>x.id===rid)
@@ -371,74 +357,141 @@ export default function IsometricGameMap({
             const cfg=zone.cfg; const bc=isBroken?'#ef4444':cfg.border
             const glow=isBroken?'239,68,68':hasCrit?'239,68,68':hasNeedCrit?'251,146,60':cfg.glow
             const ambient=ROOM_AMBIENT[zone.type]||[]
+
+            // Happiness avg for bottom bar
+            const avgHappiness = zoneResidentIds.length
+              ? Math.round(zoneResidentIds.reduce((s,id)=>{const r=residents.find(x=>x.id===id);return s+(r?.happiness??50)},0)/zoneResidentIds.length)
+              : 0
+            const happCol = avgHappiness>=70?'#22c55e':avgHappiness>=40?'#f59e0b':'#ef4444'
+
+            // Max 4 residents shown, rest as "+N"
+            const visibleResidents = zoneResidentIds.slice(0,4)
+            const hiddenCount = Math.max(0, zoneResidentIds.length - 4)
+
             return (
-              <div key={zone.id} className="absolute" style={{left:px.x+3,top:px.y+3,width:px.w-6,height:px.h-6,background:cfg.bg,border:`1px solid ${bc}`,borderRadius:'12px 12px 6px 6px',boxShadow:`0 7px 0 rgba(0,0,0,0.5),0 11px 18px rgba(0,0,0,0.45),0 0 22px 3px rgba(${glow},0.28),inset 0 1px 0 rgba(255,255,255,0.07)`}}>
+              <div key={zone.id} className="absolute flex flex-col" style={{
+                left: px.x+3, top: px.y+3, width: px.w-6, height: px.h-6,
+                background: cfg.bg,
+                border: `1px solid ${bc}`,
+                borderRadius: '12px 12px 6px 6px',
+                boxShadow: `0 7px 0 rgba(0,0,0,0.5),0 11px 18px rgba(0,0,0,0.45),0 0 22px 3px rgba(${glow},0.28),inset 0 1px 0 rgba(255,255,255,0.07)`,
+              }}>
 
                 {/* Top shine */}
-                <div className="absolute inset-x-0 top-0 h-8 rounded-t-xl pointer-events-none" style={{background:`linear-gradient(to bottom,rgba(255,255,255,0.09),transparent)`}} />
-
-                {/* Room header */}
-                <div className="flex items-center gap-2 px-2.5 pt-2 relative z-10">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-xl shrink-0" style={{background:`rgba(${glow},0.18)`,border:`1px solid rgba(${glow},0.3)`}}>
-                    {isBroken?'💥':zone.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black leading-tight truncate" style={{color:cfg.text}}>{zone.label}</p>
-                    {rd && rd.level>1 && <p className="text-[8px] font-bold" style={{color:`rgba(${glow},0.7)`}}>Nv.{rd.level}</p>}
-                  </div>
-                  {zEvs.length>0 && (
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${hasCrit?'bg-red-500 text-white animate-pulse':'text-white'}`} style={!hasCrit?{background:`rgba(${glow},0.35)`}:undefined}>{zEvs.length}⚠</span>
-                  )}
-                </div>
+                <div className="absolute inset-x-0 top-0 h-7 rounded-t-xl pointer-events-none z-0" style={{background:'linear-gradient(to bottom,rgba(255,255,255,0.09),transparent)'}} />
 
                 {/* Ambient decorations */}
                 {ambient.map((item,i) => (
                   <div key={i} className={`absolute pointer-events-none ${item.cls} ${item.size||'text-base'}`}
-                    style={{left:`${item.x}%`,top:`${item.y}%`,transform:'translateX(-50%)',zIndex:5,opacity:0.75}}>
+                    style={{left:`${item.x}%`,top:`${item.y}%`,transform:'translateX(-50%)',zIndex:2,opacity:0.5}}>
                     {item.emoji}
                   </div>
                 ))}
 
-                {/* Event buttons */}
+                {/* ── Room header ── */}
+                <div className="flex items-center gap-1.5 px-2 pt-2 pb-1 shrink-0 relative z-10">
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center text-sm shrink-0"
+                    style={{background:`rgba(${glow},0.2)`,border:`1px solid rgba(${glow},0.3)`}}>
+                    {isBroken?'💥':zone.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black leading-none truncate" style={{color:cfg.text}}>{zone.label}</p>
+                    {rd && rd.level>1 && <p className="text-[8px]" style={{color:`rgba(${glow},0.65)`}}>Nv.{rd.level}</p>}
+                  </div>
+                  {zEvs.length>0 && (
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0 ${hasCrit?'bg-red-500 text-white animate-pulse':'text-white'}`}
+                      style={!hasCrit?{background:`rgba(${glow},0.4)`}:undefined}>
+                      {zEvs.length}⚠
+                    </span>
+                  )}
+                </div>
+
+                {/* ── Residents area ── */}
+                <div className="flex-1 flex items-center justify-evenly flex-wrap gap-x-0.5 gap-y-1 px-1.5 relative z-10 min-h-0 overflow-visible">
+                  {zoneResidentIds.length === 0 ? (
+                    <p className="text-[9px] text-slate-700 font-medium">Sin residentes</p>
+                  ) : (
+                    <>
+                      {visibleResidents.map(rid => {
+                        const res = residents.find(r => r.id === rid)
+                        if (!res) return null
+                        const isWalking = walking.has(rid)
+                        const hasEvent = events.some(e => e.resident_id === rid)
+                        const bubble = bubbles[rid]
+                        const hc = res.happiness>=70?'#22c55e':res.happiness>=40?'#f59e0b':res.happiness>=20?'#f97316':'#ef4444'
+                        const isHosp = res.activity === 'hospitalizado — esperando traslado'
+                        const isSelected = popupResident === rid
+                        return (
+                          <div key={rid} className="relative flex flex-col items-center" style={{zIndex: isSelected ? 30 : 10}}>
+                            {/* Speech bubble - renders above tile (overflow:visible on parent) */}
+                            {bubble && (
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none animate-bounce-in"
+                                style={{zIndex:50,whiteSpace:'nowrap',background:'rgba(255,255,255,0.96)',color:'#0f172a',fontSize:9,fontWeight:700,padding:'3px 7px',borderRadius:8,maxWidth:110,lineHeight:1.3,boxShadow:'0 2px 14px rgba(0,0,0,0.55)'}}>
+                                {bubble}
+                                <div style={{position:'absolute',bottom:-4,left:'50%',transform:'translateX(-50%)',width:0,height:0,borderLeft:'4px solid transparent',borderRight:'4px solid transparent',borderTop:'4px solid rgba(255,255,255,0.96)'}} />
+                              </div>
+                            )}
+                            {hasEvent && <div className="absolute -top-1 -right-1.5 text-[10px] z-20 pointer-events-none leading-none">🔴</div>}
+                            {isHosp && <div className="absolute -top-1 -left-1.5 text-[10px] z-20 pointer-events-none leading-none">🏥</div>}
+                            {isSelected && <div className="absolute -inset-0.5 rounded-lg border border-white/60 animate-pulse pointer-events-none z-20" />}
+                            <button
+                              className="flex flex-col items-center gap-0 active:scale-90 transition-transform"
+                              onClick={() => setPopupResident(popupResident===rid?null:rid)}
+                            >
+                              <div className={`text-xl text-center leading-none ${isHosp?'opacity-35':isWalking?'animate-walk':'animate-idle'}`}
+                                style={{filter:`drop-shadow(0 2px 6px ${hc}80)`}}>
+                                {isHosp?'🛌':isWalking?'🚶':(PERSONALITY_EMOJI[res.personality]||'🧓')}
+                              </div>
+                              <div className="w-5 h-1 rounded-full mt-0.5" style={{background:'rgba(255,255,255,0.1)'}}>
+                                <div className="h-full rounded-full transition-all duration-700" style={{width:`${res.happiness}%`,background:hc}} />
+                              </div>
+                              <p className="text-[8px] text-slate-400 font-bold mt-0.5 leading-none">{res.name.split(' ')[0]}</p>
+                            </button>
+                          </div>
+                        )
+                      })}
+                      {hiddenCount > 0 && (
+                        <div className="flex flex-col items-center justify-center w-8 h-8 rounded-lg text-[9px] font-black text-slate-400"
+                          style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)'}}>
+                          +{hiddenCount}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* ── Event buttons ── */}
                 {zEvs.length>0 && (
-                  <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-1 z-10">
+                  <div className="flex flex-col gap-0.5 px-1.5 pb-1.5 shrink-0 relative z-10">
                     {zEvs.slice(0,2).map(ev => {
                       const c=EVENT_CFG[ev.type]||{emoji:'⚠️',label:'Problema',color:'#94a3b8',bg:'rgba(100,100,100,0.9)'}
                       const maxTicks=ev.urgency==='normal'?4:8
                       const pct=ev.unresolved_ticks>0?Math.max(0,100-(ev.unresolved_ticks/maxTicks*100)):100
                       return (
                         <button key={ev.id} onClick={()=>handleResolve(ev)} disabled={resolving===ev.id}
-                          className="relative flex items-center gap-2 px-2.5 py-2 rounded-xl active:scale-95 transition-transform disabled:opacity-50 overflow-hidden text-left"
+                          className="relative flex items-center gap-1.5 px-2 py-1.5 rounded-xl active:scale-95 transition-transform disabled:opacity-50 overflow-hidden text-left"
                           style={{background:c.bg,border:'1px solid rgba(255,255,255,0.15)'}}>
-                          {/* Urgency countdown bar */}
                           <div className="absolute inset-x-0 bottom-0 h-0.5" style={{background:'rgba(0,0,0,0.3)'}}>
                             <div className="h-full rounded-full" style={{width:`${pct}%`,background:pct>60?'rgba(255,255,255,0.5)':pct>30?'rgba(255,200,0,0.8)':'rgba(255,50,50,0.9)',transition:'width 1s linear'}} />
                           </div>
-                          <span className={`text-base shrink-0 ${ev.urgency==='critical'?'animate-event':''}`}>{c.emoji}</span>
+                          <span className={`text-sm shrink-0 ${ev.urgency==='critical'?'animate-event':''}`}>{c.emoji}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-white text-[9px] font-black leading-tight truncate">{ev.type==='inspection'?'Inspector Ramírez':(ev as GameEvent&{residents?:{name:string}}).residents?.name}</p>
                             <p className="text-white/70 text-[8px]">{c.label}</p>
                           </div>
-                          <span className="text-white text-xs font-bold shrink-0">{resolving===ev.id?'⏳':'👆'}</span>
+                          <span className="text-white text-[10px] font-bold shrink-0">{resolving===ev.id?'⏳':'👆'}</span>
                         </button>
                       )
                     })}
                   </div>
                 )}
 
-                {/* Resident happiness bar */}
-                {zoneResidentIds.length > 0 && (() => {
-                  const ids = zoneResidents[zone.id] || []
-                  const avg = ids.length ? Math.round(ids.reduce((s,id)=>{const r=residents.find(x=>x.id===id);return s+(r?.happiness??50)},0)/ids.length) : 0
-                  const col = avg>=70?'#22c55e':avg>=40?'#f59e0b':'#ef4444'
-                  return (
-                    <div className="absolute bottom-0 inset-x-0 h-1 rounded-b-lg overflow-hidden pointer-events-none" style={{background:'rgba(0,0,0,0.35)'}}>
-                      <div className="h-full rounded-b-lg transition-all duration-1000" style={{width:`${avg}%`,background:col,opacity:0.8}} />
-                    </div>
-                  )
-                })()}
-                {/* Bottom depth */}
-                <div className="absolute bottom-1 inset-x-0 h-1 pointer-events-none" style={{background:'linear-gradient(to bottom,transparent,rgba(0,0,0,0.3))'}} />
+                {/* ── Happiness bottom bar ── */}
+                {zoneResidentIds.length > 0 && (
+                  <div className="shrink-0 h-1 rounded-b-lg overflow-hidden" style={{background:'rgba(0,0,0,0.35)'}}>
+                    <div className="h-full rounded-b-lg transition-all duration-1000" style={{width:`${avgHappiness}%`,background:happCol,opacity:0.85}} />
+                  </div>
+                )}
               </div>
             )
           })}
@@ -449,44 +502,6 @@ export default function IsometricGameMap({
             <span className="text-[8px] text-slate-700 tracking-[0.35em] uppercase shrink-0">pasillo</span>
             <div className="flex-1 h-px" style={{background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent)'}} />
           </div>
-
-          {/* Residents — TAPPABLE */}
-          {residents.map(res => {
-            const pos=getResidentPx(res.id); if (!pos) return null
-            const isWalking=walking.has(res.id)
-            const hasEvent=events.some(e=>e.resident_id===res.id)
-            const bubble=bubbles[res.id]
-            const hc=res.happiness>=70?'#22c55e':res.happiness>=40?'#f59e0b':res.happiness>=20?'#f97316':'#ef4444'
-            const isHosp=res.activity==='hospitalizado — esperando traslado'
-            const isSelected=popupResident===res.id
-            return (
-              <div key={res.id} className="absolute" style={{left:pos.x,top:pos.y,width:34,transition:'left 1.1s cubic-bezier(0.4,0,0.2,1),top 1.1s cubic-bezier(0.4,0,0.2,1)',zIndex:isSelected?25:10}}>
-                {bubble && (
-                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 z-20 animate-bounce-in"
-                    style={{whiteSpace:'nowrap',background:'rgba(255,255,255,0.96)',color:'#0f172a',fontSize:9,fontWeight:700,padding:'3px 7px',borderRadius:8,maxWidth:120,lineHeight:1.3,boxShadow:'0 2px 14px rgba(0,0,0,0.55)'}}>
-                    {bubble}
-                    <div style={{position:'absolute',bottom:-4,left:'50%',transform:'translateX(-50%)',width:0,height:0,borderLeft:'4px solid transparent',borderRight:'4px solid transparent',borderTop:'4px solid rgba(255,255,255,0.96)'}} />
-                  </div>
-                )}
-                {hasEvent && <div className="absolute -top-2 -right-1 text-xs animate-bounce z-20">🔴</div>}
-                {isHosp   && <div className="absolute -top-2 -left-1 text-xs z-20">🏥</div>}
-                {isSelected && <div className="absolute -inset-1 rounded-full border-2 border-white/60 animate-pulse" />}
-                {/* Tappable sprite */}
-                <button
-                  className="block w-full pointer-events-auto active:scale-90 transition-transform"
-                  onClick={() => setPopupResident(popupResident===res.id?null:res.id)}
-                >
-                  <div className={`text-[26px] text-center leading-none ${isHosp?'opacity-35':isWalking?'animate-walk':'animate-idle'}`} style={{filter:`drop-shadow(0 2px 8px ${hc}70)`}}>
-                    {isHosp?'🛌':isWalking?'🚶':(PERSONALITY_EMOJI[res.personality]||'🧓')}
-                  </div>
-                </button>
-                <div className="w-6 h-1 rounded-full mx-auto mt-0.5" style={{background:'rgba(255,255,255,0.1)'}}>
-                  <div className="h-full rounded-full transition-all duration-700" style={{width:`${res.happiness}%`,background:hc}} />
-                </div>
-                <p className="text-[8px] text-slate-400 text-center font-bold mt-0.5 leading-none">{res.name.split(' ')[0]}</p>
-              </div>
-            )
-          })}
 
           {/* ★ Collectibles */}
           {collectibles.map(coll => (
@@ -505,7 +520,7 @@ export default function IsometricGameMap({
 
           {/* JR sprite */}
           {jrVisible && jrPos && (
-            <div className="absolute pointer-events-none z-20" style={{left:jrPos.x-4,top:jrPos.y-4,width:32,transition:'left 0.5s ease-out,top 0.5s ease-out'}}>
+            <div className="absolute pointer-events-none z-20" style={{left:jrPos.x-16,top:jrPos.y-24,width:32,transition:'left 0.5s ease-out,top 0.5s ease-out'}}>
               <div className="text-[26px] text-center animate-walk drop-shadow-lg">👨‍⚕️</div>
               <p className="text-[8px] text-emerald-400 text-center font-black">JR</p>
             </div>
@@ -523,13 +538,13 @@ export default function IsometricGameMap({
         </div>
 
         {/* ─ Resident popup (outside rotated div, inside perspective container) ─ */}
-        {popupResidentData && popupPos && (
+        {popupResidentData && popupZonePx && (
           <div className="absolute z-50 pointer-events-none" style={{left:0,top:0,width:'100%',height:`${totalH}px`}}>
             <div className="pointer-events-auto animate-popup-in" style={{
               position:'absolute',
-              left: Math.max(8, Math.min(containerW-196, popupPos.x-82)),
-              top:  Math.max(8, popupPos.y - 168),
-              width:188,
+              left: Math.max(8, Math.min(containerW-196, popupZonePx.x + popupZonePx.w/2 - 94)),
+              top:  Math.max(8, popupZonePx.y + 28),
+              width: 188,
               background:'rgba(9,11,20,0.97)',
               border:'1px solid rgba(255,255,255,0.15)',
               borderRadius:16,
@@ -560,7 +575,7 @@ export default function IsometricGameMap({
                 </div>
               </div>
 
-              {/* Mini needs (only critical ones) */}
+              {/* Mini needs */}
               {(['hunger','medication','companionship'] as const).map(n => {
                 const val = popupResidentData[n]; const col=val<30?'#ef4444':val<55?'#f59e0b':'#22c55e'
                 const icons: Record<string,string> = {hunger:'🍽️',medication:'💊',companionship:'💬'}
@@ -579,9 +594,9 @@ export default function IsometricGameMap({
               {onCare && (
                 <div className="flex gap-1.5 mt-3">
                   {([
-                    {id:'feed'   as const, emoji:'🍽️', label:'15€',   color:'rgba(245,158,11,0.2)',  border:'rgba(245,158,11,0.45)', disabled:residence.money<15},
-                    {id:'medicate' as const, emoji:'💊', label:'25€', color:'rgba(236,72,153,0.2)',  border:'rgba(236,72,153,0.45)', disabled:residence.money<25},
-                    {id:'chat'   as const, emoji:'💬', label:'-10⚡', color:'rgba(96,165,250,0.2)',  border:'rgba(96,165,250,0.45)',  disabled:residence.jr_energy<10},
+                    {id:'feed'     as const, emoji:'🍽️', label:'15€',   color:'rgba(245,158,11,0.2)',  border:'rgba(245,158,11,0.45)', disabled:residence.money<15},
+                    {id:'medicate' as const, emoji:'💊', label:'25€',   color:'rgba(236,72,153,0.2)',  border:'rgba(236,72,153,0.45)', disabled:residence.money<25},
+                    {id:'chat'     as const, emoji:'💬', label:'-10⚡', color:'rgba(96,165,250,0.2)',  border:'rgba(96,165,250,0.45)',  disabled:residence.jr_energy<10},
                   ]).map(a => (
                     <button key={a.id}
                       onClick={()=>handlePopupCare(popupResidentData.id,a.id)}
@@ -619,7 +634,6 @@ function StatsBar({residence,events,residents,dayLabel}:{residence:Residence;eve
           <p className="text-green-400 font-black text-sm leading-tight">{residence.money>=1000?`${(residence.money/1000).toFixed(1)}k€`:`${residence.money}€`}</p>
         </div>
 
-        {/* Divider */}
         <div className="w-px self-stretch" style={{background:'rgba(255,255,255,0.06)'}} />
 
         {/* JR level */}
