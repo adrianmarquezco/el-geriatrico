@@ -331,12 +331,24 @@ export default function IsometricGameMap({
           <button onClick={()=>onRepairRoom(brokenRoom.id)} className="text-xs px-3 py-2 rounded-xl font-bold active:scale-95 transition-transform shrink-0" style={{background:'rgba(239,68,68,0.2)',color:'#fca5a5',border:'1px solid rgba(239,68,68,0.35)'}}>150€ 🔧</button>
         </div>
       )}
-      {residents.some(r=>r.activity==='hospitalizado — esperando traslado') && (
-        <div className="card card-red animate-pulse">
-          <p className="text-red-300 font-bold text-sm">🏥 Residente hospitalizado</p>
-          <p className="text-red-600 text-xs mt-0.5">−500€ y −10 reputación por urgencia no atendida</p>
-        </div>
-      )}
+      {residents.some(r=>r.activity==='hospitalizado — esperando traslado') && (() => {
+        const hosp = residents.filter(r=>r.activity==='hospitalizado — esperando traslado')
+        return (
+          <div className="card" style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.25)'}}>
+            <div className="flex items-start gap-2.5">
+              <span className="text-xl shrink-0">🏥</span>
+              <div>
+                <p className="text-red-300 font-black text-sm leading-tight">
+                  {hosp.map(r=>r.name.split(' ')[0]).join(', ')} {hosp.length===1?'está':'están'} hospitalizado{hosp.length>1?'s':''}
+                </p>
+                <p className="text-red-600 text-[10px] mt-0.5 leading-relaxed">
+                  Penalización ya aplicada · Volverá{hosp.length>1?'n':''} en el próximo ciclo
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ═══ MAP ═══ */}
       <div className="w-full rounded-2xl relative" style={{border:'1px solid rgba(255,255,255,0.07)',overflow:'visible'}}>
@@ -430,9 +442,9 @@ export default function IsometricGameMap({
                             {/* Speech bubble */}
                             {bubble && (
                               <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 pointer-events-none animate-bounce-in"
-                                style={{zIndex:50,whiteSpace:'nowrap',background:'rgba(255,255,255,0.96)',color:'#0f172a',fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:8,maxWidth:110,lineHeight:1.3,boxShadow:'0 2px 14px rgba(0,0,0,0.55)'}}>
+                                style={{zIndex:50,background:'rgba(255,255,255,0.97)',color:'#0f172a',fontSize:10,fontWeight:700,padding:'4px 9px',borderRadius:10,width:'max-content',maxWidth:160,lineHeight:1.4,boxShadow:'0 3px 16px rgba(0,0,0,0.6)',textAlign:'center'}}>
                                 {bubble}
-                                <div style={{position:'absolute',bottom:-4,left:'50%',transform:'translateX(-50%)',width:0,height:0,borderLeft:'4px solid transparent',borderRight:'4px solid transparent',borderTop:'4px solid rgba(255,255,255,0.96)'}} />
+                                <div style={{position:'absolute',bottom:-5,left:'50%',transform:'translateX(-50%)',width:0,height:0,borderLeft:'5px solid transparent',borderRight:'5px solid transparent',borderTop:'5px solid rgba(255,255,255,0.97)'}} />
                               </div>
                             )}
                             {/* Need indicators — pulsing icons above sprite */}

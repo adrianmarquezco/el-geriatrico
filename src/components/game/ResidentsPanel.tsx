@@ -13,11 +13,13 @@ const PERSONALITY_LABEL: Record<string, string> = {
   misterioso: '🕵️ Misterioso', exigente: '🎩 Exigente', normal: '😊 Normal',
 }
 
-type CareAction = 'feed' | 'medicate' | 'chat'
-const CARE_ACTIONS: { id: CareAction; emoji: string; label: string; cost: string; color: string; borderColor: string }[] = [
-  { id: 'feed',     emoji: '🍽️', label: 'Alimentar', cost: '15€',  color: 'rgba(245,158,11,0.15)', borderColor: 'rgba(245,158,11,0.4)'  },
-  { id: 'medicate', emoji: '💊', label: 'Medicar',    cost: '25€',  color: 'rgba(236,72,153,0.15)',  borderColor: 'rgba(236,72,153,0.4)'   },
-  { id: 'chat',     emoji: '💬', label: 'Charlar',    cost: '−10⚡', color: 'rgba(96,165,250,0.15)',  borderColor: 'rgba(96,165,250,0.4)'  },
+type CareAction = 'feed' | 'medicate' | 'chat' | 'shower' | 'entertain'
+const CARE_ACTIONS: { id: CareAction; emoji: string; label: string; cost: string; color: string; borderColor: string; minMoney?: number; minEnergy?: number }[] = [
+  { id: 'feed',      emoji: '🍽️', label: 'Alimentar', cost: '15€',   color: 'rgba(245,158,11,0.15)', borderColor: 'rgba(245,158,11,0.4)', minMoney: 15  },
+  { id: 'medicate',  emoji: '💊', label: 'Medicar',    cost: '25€',   color: 'rgba(236,72,153,0.15)', borderColor: 'rgba(236,72,153,0.4)', minMoney: 25  },
+  { id: 'chat',      emoji: '💬', label: 'Charlar',    cost: '−10⚡', color: 'rgba(96,165,250,0.15)', borderColor: 'rgba(96,165,250,0.4)', minEnergy: 10 },
+  { id: 'shower',    emoji: '🚿', label: 'Ducha',      cost: '10€',   color: 'rgba(34,197,94,0.15)',  borderColor: 'rgba(34,197,94,0.4)',  minMoney: 10  },
+  { id: 'entertain', emoji: '📺', label: 'TV',         cost: '5€·5⚡',color: 'rgba(168,85,247,0.15)', borderColor: 'rgba(168,85,247,0.4)', minMoney: 5, minEnergy: 5 },
 ]
 
 interface Props {
@@ -41,9 +43,9 @@ export default function ResidentsPanel({ residents, money, jrEnergy, onCare }: P
   }
 
   async function handleCare(residentId: string, action: CareAction) {
-    if (action === 'feed'     && money < 15)     return
-    if (action === 'medicate' && money < 25)     return
-    if (action === 'chat'     && jrEnergy < 10)  return
+    const cfg = CARE_ACTIONS.find(a => a.id === action)
+    if (cfg?.minMoney  && money    < cfg.minMoney)  return
+    if (cfg?.minEnergy && jrEnergy < cfg.minEnergy) return
     const key = `${residentId}:${action}`
     setCaring(key)
     await onCare(residentId, action)
@@ -128,29 +130,44 @@ export default function ResidentsPanel({ residents, money, jrEnergy, onCare }: P
               })}
             </div>
 
-            {/* Care actions */}
-            <div className="flex gap-2">
-              {CARE_ACTIONS.map(action => {
-                const key = `${r.id}:${action.id}`
-                const isLoading = caring === key
-                const disabled = isLoading
-                  || (action.id === 'feed'     && money < 15)
-                  || (action.id === 'medicate' && money < 25)
-                  || (action.id === 'chat'     && jrEnergy < 10)
-                return (
-                  <button
-                    key={action.id}
-                    onClick={() => handleCare(r.id, action.id)}
-                    disabled={disabled}
-                    className="flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[9px] font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                    style={{ background: action.color, border: `1px solid ${action.borderColor}`, color: '#e2e8f0' }}
-                  >
-                    <span className="text-base leading-none">{isLoading ? '⏳' : action.emoji}</span>
-                    <span>{action.label}</span>
-                    <span className="text-[8px] opacity-70">{action.cost}</span>
-                  </button>
-                )
-              })}
+            {/* Care actions — grid 3+2 */}
+            <div className="flex flex-col gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5">
+                {CARE_ACTIONS.slice(0,3).map(action => {
+                  const key = `${r.id}:${action.id}`
+                  const isLoading = caring === key
+                  const disabled = isLoading
+                    || (action.minMoney  !== undefined && money    < action.minMoney)
+                    || (action.minEnergy !== undefined && jrEnergy < action.minEnergy)
+                  return (
+                    <button key={action.id} onClick={() => handleCare(r.id, action.id)} disabled={disabled}
+                      className="flex flex-col items-center gap-0.5 py-2.5 rounded-xl text-[9px] font-bold transition-all active:scale-95 disabled:opacity-40"
+                      style={{ background: action.color, border: `1px solid ${action.borderColor}`, color: '#e2e8f0' }}>
+                      <span className="text-lg leading-none">{isLoading ? '⏳' : action.emoji}</span>
+                      <span className="font-black">{action.label}</span>
+                      <span className="text-[8px] opacity-60">{action.cost}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CARE_ACTIONS.slice(3).map(action => {
+                  const key = `${r.id}:${action.id}`
+                  const isLoading = caring === key
+                  const disabled = isLoading
+                    || (action.minMoney  !== undefined && money    < action.minMoney)
+                    || (action.minEnergy !== undefined && jrEnergy < action.minEnergy)
+                  return (
+                    <button key={action.id} onClick={() => handleCare(r.id, action.id)} disabled={disabled}
+                      className="flex flex-col items-center gap-0.5 py-2.5 rounded-xl text-[9px] font-bold transition-all active:scale-95 disabled:opacity-40"
+                      style={{ background: action.color, border: `1px solid ${action.borderColor}`, color: '#e2e8f0' }}>
+                      <span className="text-lg leading-none">{isLoading ? '⏳' : action.emoji}</span>
+                      <span className="font-black">{action.label}</span>
+                      <span className="text-[8px] opacity-60">{action.cost}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             {/* Backstory / activity */}
