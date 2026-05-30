@@ -73,25 +73,78 @@ const PERSONALITY_EMOJI: Record<string, string> = {
   sordo: '👴', coqueta: '💃', misterioso: '🕵️', exigente: '👵', normal: '🧓',
 }
 const SPEECH: Record<string, string[]> = {
-  quejica:    ['¡Este arroz está seco!', 'Llevo esperando media hora', '¿Es que nadie trabaja aquí?'],
-  cotilla:    ['¿Viste lo que hizo Don Paco?', 'Entre tú y yo...', 'Te cuento algo...'],
-  mandón:     ['Aquí mando yo', 'JR, no tenemos todo el día'],
-  devota:     ['Ave María Purísima', '¡Hay que ir a misa!', 'Rezaré por ti'],
-  sordo:      ['¿Cómo dices?', '¡Muy bien, gracias!', '¿Qué?'],
-  coqueta:    ['Hay que cuidarse', 'Yo a tu edad era un peligro'],
-  misterioso: ['...', 'Ya pasará', 'Lo sé todo'],
-  exigente:   ['Le falta sal', 'En mi casa era mejor'],
-  normal:     ['Buenas tardes', '¿A qué hora es la cena?', 'Hoy hace buen día'],
+  quejica:    [
+    '¡Este arroz está seco!', 'Llevo esperando media hora', '¿Es que nadie trabaja aquí?',
+    'La calefacción, ya estamos...', '¡Me duelen los pies!', 'Ayer la sopa estaba fría',
+    '¿Por qué tarda tanto JR?', 'Esto antes era mejor', '¡No se puede dormir aquí!',
+    'La cama está dura como una piedra', 'Nadie me hace caso', '¿Han llamado mis hijos?',
+    '¡Qué frío hace!', 'Ese ruido no me deja concentrarme',
+  ],
+  cotilla:    [
+    '¿Viste lo que hizo Don Paco?', 'Entre tú y yo...', 'Te cuento algo...',
+    'La Carmencita tiene un secreto', 'Anoche oí pasos en el pasillo',
+    '¿Sabes quién me dijo que...?', 'Eso que dijo Pepe, mentira',
+    'Aquí hay mucho que contar', 'JR tiene cara de no dormir bien',
+    '¡No repitas esto a nadie!', 'He oído una cosa...',
+    'Me han dicho que el director...', '¡Escándalo lo de ayer!',
+  ],
+  mandón:     [
+    'Aquí mando yo', 'JR, no tenemos todo el día', 'Esto necesita más organización',
+    'Yo lo haría diferente', 'Apunta esto', '¡A ver si nos ponemos!',
+    'Cuando yo dirigía...', 'Hay que tener un plan', '¡No se improvisa!',
+    'Primero hay que establecer prioridades',
+  ],
+  devota:     [
+    'Ave María Purísima', '¡Hay que ir a misa!', 'Rezaré por ti',
+    'Dios proveerá', '¡Que Dios nos ampare!', 'El rosario, que me dejé el rosario',
+    'Hoy es día de oración', '¡Alabado sea el Señor!', 'Un padrenuestro y verás',
+    'La Virgen nos protege', '¿Has rezado hoy?',
+  ],
+  sordo:      [
+    '¿Cómo dices?', '¡Muy bien, gracias!', '¿Qué?',
+    '¡No te oigo!', '¡Habla más alto!', '¡¿Cómo?!',
+    '¡Sí, sí, claro!', '¿Qué ha pasado?', '¡Repite, anda!',
+    '¡No entiendo nada!', '¿EH?',
+  ],
+  coqueta:    [
+    'Hay que cuidarse', 'Yo a tu edad era un peligro',
+    '¿Cómo tengo el pelo?', 'Necesito mis cremas',
+    'Qué guapo está JR hoy', 'Siempre hay que estar favorecida',
+    'Me hice la permanente la semana pasada', '¿Hay espejo aquí cerca?',
+    'A cierta edad hay que esforzarse más', 'El rojo me sienta muy bien',
+  ],
+  misterioso: [
+    '...', 'Ya pasará', 'Lo sé todo',
+    'Algo se acerca', 'No es lo que parece', 'Hay señales',
+    'Lo vi venir', 'Guardo muchos secretos', '...interesante',
+    'El tiempo dirá', 'Aquí hay algo', 'Observo. Siempre observo.',
+  ],
+  exigente:   [
+    'Le falta sal', 'En mi casa era mejor', 'Esto no es calidad',
+    'Hay mucho margen de mejora', 'Inaceptable', 'Los estándares han bajado',
+    'En mi época esto no pasaba', 'Exijo hablar con el responsable',
+    'Mínimo, mínimo', '¿Esto es lo mejor que tienen?',
+  ],
+  normal:     [
+    'Buenas tardes', '¿A qué hora es la cena?', 'Hoy hace buen día',
+    'Menuda mañana', '¿Ponemos la tele?', 'Me apetece salir al jardín',
+    '¿Cómo estás, JR?', 'Buen día para las cartas', 'Hoy me encuentro bien',
+    '¿Ha llegado el correo?', 'Qué tranquilo está esto hoy',
+    '¿Hay algo de leer por aquí?',
+  ],
 }
 const SPEECH_EVENT: Record<string, string[]> = {
-  hunger: ['Me muero de hambre...','¡Llevo sin comer horas!'],
-  medication: ['Esas pastillas no...','¡No me las tomo!'],
-  tv_dispute: ['¡El mando es mío!'],
-  fallen: ['Ay, mi cadera...','¡Ayuda!'],
-  hygiene: ['¿Dónde está la ducha?'],
-  companionship: ['Qué solo estoy...','¿Hay alguien ahí?'],
-  family_visit: ['¡Que vienen mis hijos!'],
-  inspection: ['¿Quién es ese señor?'],
+  hunger:        ['Me muero de hambre...', '¡Llevo sin comer horas!', '¡Se me va la cabeza de hambre!', 'Solo pido un bocadillo...'],
+  medication:    ['Esas pastillas no...', '¡No me las tomo!', 'Odio las pastillas', '¿Para qué sirven estas?'],
+  tv_dispute:    ['¡El mando es mío!', '¡Yo estaba viendo eso!', '¡Fuera de la tele!'],
+  fallen:        ['Ay, mi cadera...', '¡Ayuda!', '¡Me he caído!', '¡No me puedo levantar!'],
+  hygiene:       ['¿Dónde está la ducha?', 'Necesito asearme ya', '¡Agua caliente, por favor!'],
+  companionship: ['Qué solo estoy...', '¿Hay alguien ahí?', 'Nadie me visita...', 'Necesito hablar con alguien'],
+  family_visit:  ['¡Que vienen mis hijos!', '¡Mi familia! ¡Ya era hora!', '¡Mis nietos!'],
+  inspection:    ['¿Quién es ese señor?', 'No me gusta ese inspector', '¿Viene a vernos?'],
+  missing:       ['¿Dónde estoy?', 'Creo que me he perdido...', '¡Que alguien me ayude!'],
+  locked_in:     ['¡Abrid la puerta!', '¡Estoy aquí dentro!', '¡No puedo salir!'],
+  entertainment: ['¡Qué aburrimiento!', 'No hay nada que hacer aquí', '¿Ponemos algo de tele?'],
 }
 const EVENT_CFG: Record<string, { emoji: string; label: string; color: string; bg: string }> = {
   hygiene:       { emoji: '🚿',   label: 'Higiene urgente',  color: '#60a5fa', bg: 'rgba(37,99,235,0.9)'   },
@@ -157,6 +210,7 @@ interface Props {
   onCollect?: (value:number, type:'money'|'xp') => void
   onCare?: (residentId:string, action:'feed'|'medicate'|'chat'|'shower'|'entertain') => Promise<void>
   onRoomAction?: (roomType:string) => Promise<void>
+  onTalk?: (residentId:string) => void
 }
 
 const ROOM_ACTION_CFG: Record<string, { label: string; cost: string; emoji: string }> = {
@@ -175,7 +229,7 @@ const ROOM_ACTION_COOLDOWN_MS = 4 * 60 * 1000 // 4 min
 export default function IsometricGameMap({
   residence, residents, events, rooms,
   onResolve, onGoToBuild, onRepairRoom,
-  onOpenMiniGame, onFamilyVisit, onInspection, onCollect, onCare, onRoomAction
+  onOpenMiniGame, onFamilyVisit, onInspection, onCollect, onCare, onRoomAction, onTalk
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerW, setContainerW] = useState(340)
@@ -192,6 +246,7 @@ export default function IsometricGameMap({
   const [caringAction, setCaringAction] = useState<string|null>(null)
   const [roomActionLoading, setRoomActionLoading] = useState<string|null>(null)
   const [roomCooldowns, setRoomCooldowns] = useState<Record<string,number>>({})
+  const recentSpeechRef = useRef<Record<string, string[]>>({})
   useEffect(() => { setDayTint(getDayTint()) }, [])
 
   useEffect(() => {
@@ -210,7 +265,7 @@ export default function IsometricGameMap({
     if (nw.size > 0) { setWalking(nw); const t=setTimeout(()=>setWalking(new Set()),1400); return ()=>clearTimeout(t) }
   }, [residents])
 
-  // Speech bubbles — cada 5-9s para que el juego se sienta más vivo
+  // Speech bubbles — anti-repeat: filtra las últimas 4 frases mostradas por residente
   useEffect(() => {
     if (!residents.length) return
     const go = (): ReturnType<typeof setTimeout> => setTimeout(() => {
@@ -218,7 +273,11 @@ export default function IsometricGameMap({
       if (!r) return go()
       const evs = events.filter(e=>e.resident_id===r.id)
       const pool = evs.length ? (SPEECH_EVENT[evs[0].type]||SPEECH[r.personality]||SPEECH.normal) : (SPEECH[r.personality]||SPEECH.normal)
-      const txt = pool[Math.floor(Math.random()*pool.length)]
+      const recent = recentSpeechRef.current[r.id] || []
+      const filtered = pool.filter(t => !recent.includes(t))
+      const available = filtered.length > 0 ? filtered : pool
+      const txt = available[Math.floor(Math.random()*available.length)]
+      recentSpeechRef.current[r.id] = [...recent.slice(-3), txt]
       setBubbles(p=>({...p,[r.id]:txt}))
       setTimeout(()=>setBubbles(p=>{const n={...p};delete n[r.id];return n}),3200)
       go()
@@ -716,9 +775,19 @@ export default function IsometricGameMap({
                 </div>
               )}
 
+              {/* Talk button */}
+              {onTalk && (
+                <button
+                  onClick={() => { setPopupResident(null); onTalk(popupResidentData.id) }}
+                  className="w-full mt-2.5 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black active:scale-95 transition-all"
+                  style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', color: '#c4b5fd' }}>
+                  💬 Hablar con {popupResidentData.name.split(' ')[0]}
+                </button>
+              )}
+
               {/* Backstory snippet */}
               {popupResidentData.backstory && (
-                <p className="text-slate-600 text-[9px] italic mt-3 leading-relaxed line-clamp-2">
+                <p className="text-slate-600 text-[9px] italic mt-2.5 leading-relaxed line-clamp-2">
                   {popupResidentData.backstory}
                 </p>
               )}

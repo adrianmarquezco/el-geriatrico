@@ -20,6 +20,7 @@ import OnboardingFlow from './OnboardingFlow'
 import AchievementsPanel from './AchievementsPanel'
 import UnlockTree from './UnlockTree'
 import ToastContainer from './Toast'
+import ResidentConversationModal from './ResidentConversationModal'
 import { useGameSounds } from '@/hooks/useGameSounds'
 
 type Tab = 'mapa' | 'residentes' | 'urgencias' | 'obras' | 'personal' | 'logros'
@@ -65,6 +66,7 @@ export default function GameDashboard({
   const [morningBriefing, setMorningBriefing] = useState<Residence['overnight_summary'] | null>(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [levelUpData, setLevelUpData] = useState<{ level: number; icon: string; title: string } | null>(null)
+  const [talkingToResident, setTalkingToResident] = useState<string | null>(null)
   const prevStoriesCount = useRef(initStories.length)
   const prevLevelRef     = useRef(init.level)
   const { play, toggle: toggleSound } = useGameSounds()
@@ -485,6 +487,7 @@ export default function GameDashboard({
               onCollect={handleCollect}
               onCare={handleCare}
               onRoomAction={handleRoomAction}
+              onTalk={(residentId) => setTalkingToResident(residentId)}
             />
             <SuppliesWidget residence={residence} onBuy={handleBuySupplies} />
           </>
@@ -588,6 +591,20 @@ export default function GameDashboard({
           )
         })}
       </nav>
+
+      {/* ═══ Conversation modal ═══ */}
+      {talkingToResident && (() => {
+        const r = residents.find(x => x.id === talkingToResident)
+        if (!r) return null
+        return (
+          <ResidentConversationModal
+            resident={r}
+            residence={residence}
+            onClose={() => setTalkingToResident(null)}
+            onCare={handleCare}
+          />
+        )
+      })()}
 
       {/* ═══ Level-up celebration ═══ */}
       {levelUpData && (
